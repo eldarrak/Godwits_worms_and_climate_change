@@ -1,0 +1,24 @@
+# Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird
+-----
+**_Eldar Rakhimberdiev_**
+
+## 1.Processing snow
+### 1. Download publically available data
+Download snow data from ...
+```{r}
+library(ncdf4)
+library(raster)
+library(rgdal)
+
+
+```
+Download taimyrensis bar-trailed godwit (_Limosa lapponica taimyrensis_) range
+```{r}
+
+
+
+```
+
+
+
+
