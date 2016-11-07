@@ -12,13 +12,7 @@ library(rgdal)
 
 
 ```
-Download taimyrensis bar-trailed godwit (_Limosa lapponica taimyrensis_) range
+Download taimyrensis bar-trailed godwit (_Limosa lapponica taimyrensis_) range from GitHub repo
 ```{r}
-
-
-
+area.longlat<-readRDS(gzcon(url('https://git.io/vXRBz')))
 ```
-
-
-
-
