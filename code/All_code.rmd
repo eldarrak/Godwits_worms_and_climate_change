@@ -340,7 +340,6 @@ My_colors<-MyColor_palette(100)
 par(mfrow=c(1,2))
 #-----------------------------
 # males plot
-
 plot(fuelling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms_vec,
      ylim=c(3.5,8.5),  ylab='fueling rate (g per day)',
      xlab='lugworm density, ind. per sq.m', main='Males',  las=1, type='n')
@@ -358,9 +357,8 @@ for (i in 1:length(Lugworms_vec)) {
    labels = substr(Years[i],3,4))
 }
 box()
-
 #-----------------
-# females graph
+# females plot
 plot(fuelling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms_vec,
      ylim=c(3.5,8.5),ylab='fueling rate (g per day)',
      xlab='lugworm density, ind. per sq.m', main='Females' ,las=1, type='n')
@@ -423,6 +421,8 @@ for (i in 1:length(Lugworms_vec)) {
 box()
 dev.off()
 ```
+## 4. Departure fuel load effects on survival from capture-recapture data
+We used Cormack–Jolly–Seber (CJS) model ([Lebreton et al., 1992](#lebreton)) to model apparent survival independently from resighting probability. Set of nested models was estimated in program MARK ([White & Burnham, 1999](#white)) through RMark ([Laake, 2013](#laake)) interface.
 
 
 ## References
@@ -433,3 +433,6 @@ dev.off()
 1. Lindén, A. & Mäntyniemi, S. Using the negative binomial distribution to model overdispersion in ecological count data. Ecology 92, 1414–1421 (2011).<a id="lindén-mäntyniemi"></a>
 1. Plummer, M. JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling. (2003).<a id="plummer"></a>
 1. Su, Y.-S. & Masanao Yajima. R2jags: Using R to Run ‘JAGS’. (2015).<a id="su-yahima"></a>
+1. Lebreton, J.-D., Burnham, K. P., Clobert, J. & Anderson, D. R. Modeling survival and testing biological hypotheses using marked animals: a unified approach with case studies. Ecol. Monogr. 62, 67–118 (1992).<a id="lebreton"></a>
+1. White, G. C. & Burnham, K. P. Program MARK: survival estimation from populations of marked animals. Bird Study 46, S120–S139 (1999).<a id="white"></a>
+1. Laake, J. L. RMark: An R interface for analysis of capture-recapture data with MARK. 25 (Alaska Fish. Sci. Cent., NOAA, Natl. Mar. Fish. Serv., 2013).<a id="laake"></a>
