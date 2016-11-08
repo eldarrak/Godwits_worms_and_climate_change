@@ -9,17 +9,18 @@ Run_everything=FALSE # Change it to TRUE if you want run everything on you syste
 ## 1. Reconstruction of snow melt from remote sensing data
 We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _limosa lapponica taimyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
 ### 1.1 Download publically available data
-Download snow data from ...
+load required packages
 ```{r}
 library(ncdf4)
 library(raster)
 library(rgdal)
+library(maptools)
 ```
-Download taimyrensis bar-trailed godwit (_Limosa lapponica taimyrensis_) range from this GitHub repo
+Download taimyrensis bar-trailed godwit [(_Limosa lapponica taimyrensis_) range](#lappo) from this GitHub repo
 ```{r}
 area.longlat<-readRDS(gzcon(url('https://git.io/vXRBz')))
 ```
-Download and read in R all snow data from NOAA
+Download and read in R all [snow data from NOAA](#brown-robinson)
 ```{r} 
 download.file('ftp://data.ncdc.noaa.gov/cdr/snowcover/nhsce_v01r01_19661004_20160905.nc',
                destfile='snow.nc', method="internal", mode="wb")
@@ -54,7 +55,6 @@ r <- raster(xmn = min(xy[,1]), xmx = max(xy[,1]), ymn = min(xy[,2]),
 tmp <- rasterize(xy, y = r, field = values(snow[[1]]))
 
 plot(tmp)
-library(maptools)
 data(wrld_simpl)
 wrld <- spTransform(subset(wrld_simpl, NAME != "Antarctica"), CRS(projSnow))
 plot(as(wrld, "SpatialLines"), add = TRUE, col = "red")
