@@ -666,7 +666,112 @@ lines(lcl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
      max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])), lty=1, lwd=1)
 dev.off()
 ```
+## 5 Population trends from winter counts in Mauritania
+We modelled change in total population of godwits in state space modelled suggested by Kéry & Shcaub ([2012](#kery-schaub)), but with negative binomial error distribution.
+### 5.1 Load packages and data
+```{r}
+library(R2jags)
+Counts<-read.csv('https://git.io/vXuL5')
+Areas<-sort(unique(Counts$Area))
+Years<-seq( min(unique(Counts$Yr)), max(unique(Counts$Yr)), 1)
+y.matrix<-matrix(ncol=length(Areas), nrow= length(Years))
+for (i in 1:nrow(Counts)) {
+   y.matrix[which(Years==Counts$Yr[i]), which(Areas==Counts$Area[i])]<-Counts$Count[i]
+}
+```
+### 5.2 Formulate model
+```{r}
+sink("winter_counts_model.jags")
+cat(" 
+model {
+   # priors
+   for (s in 1:S) {N.est[1,s] ~ dexp(exp.lam)}
+   mean.lambda ~ dunif(0.5,1.5)
+   for (s in 1:S) {r[s] ~ dgamma(0.01, 0.01)}
+   for (t in 1:T) {n_total[t]<-sum(N.est[t,])}
 
+   #likelihood
+   # state process 
+   for (t in 1:(T-1)) {
+      for (s in 1:S) {
+         N.est[t+1,s] <- N.est[t,s]*mean.lambda
+      }
+   }
+   # Observation process
+   for (t in 1:T) {
+      for (s in 1:S) {
+         p[t,s]<-r[s]/(r[s]+N.est[t,s])
+         y[t, s] ~ dnegbin(p[t,s], r[s])
+      }
+   }
+}
+", fill=TRUE)
+sink()
+```
+### 5.3 Priors and inits
+```{r}
+exp.mean<-mean(as.double(y.matrix),na.rm=T)
+exp.lam <-1/exp.mean
+
+jags.data<-list(y=y.matrix, T=length(Years), S=length(Areas), exp.lam=exp.lam)
+   
+# initials
+inits<-function() {list(
+        N.est=matrix(ncol=6, nrow=14, c(runif(6, 0, 15000), rep(NA, 6*14-6)), byrow=TRUE),
+        mean.lambda=runif(1, 0.5,1.5),
+        r=runif(6,0,10))}
+jags.params=c("n_total", "mean.lambda", "r")
+```
+### 5.4 Run the model
+```{r}
+if (Run_everything) {
+   # this model runs for ~ 2 mins brt
+   Counts_model<- jags(data=jags.data, inits, parameters=jags.params,
+   "winter_counts_model.jags", n.chains = 2, n.thin = 10, n.iter = 20000,
+   n.burnin = 5000, working.directory = getwd())
+   saveRDS(Counts_model, file='Mauritania_counts_model.RDS')
+} else {
+   Counts_model<-readRDS(gzcon(url('https://git.io/vXuqH')))
+}
+```
+### 5.5 Plot model results for Panel C at Fig.1
+I will plot on the device first and to then to pdf.
+```{r}
+print(Counts_model)
+par(mfrow=c(1,1))
+Predicted_densities<-as.data.frame(cbind(Years, 
+      t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
+      FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
+names(Predicted_densities)[2:4]<-c("lcl", "median","ucl")
+plot(median~Years, data=Predicted_densities, ylim=range(Predicted_densities[,2:4]),
+     type='n', las=1, ylab='')
+Colors<-colorRampPalette(c("white", "#0072B2"))
+polygon(x=c(Predicted_densities$Years, rev(Predicted_densities$Years)),
+        y=c(Predicted_densities$lcl, rev(Predicted_densities$ucl)), col=Colors(5)[2], border=NA)
+lines(median~Years, data=Predicted_densities, col='#0072B2', lwd=2)
+points(rowSums(y.matrix)~ Years, pch='+', col='#0072B2', cex=2)
+
+# now to pdf
+pdf("Mauritania_counts.pdf", 5, 5)
+Predicted_densities<-as.data.frame(cbind(Years, 
+      t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
+      FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
+names(Predicted_densities)[2:4]<-c("lcl", "median","ucl")
+plot(median~Years, data=Predicted_densities, ylim=range(Predicted_densities[,2:4]),
+     type='n', las=1, ylab='')
+Colors<-colorRampPalette(c("white", "#0072B2"))
+polygon(x=c(Predicted_densities$Years, rev(Predicted_densities$Years)),
+        y=c(Predicted_densities$lcl, rev(Predicted_densities$ucl)), col=Colors(5)[2], border=NA)
+lines(median~Years, data=Predicted_densities, col='#0072B2', lwd=2)
+points(rowSums(y.matrix)~ Years, pch='+', col='#0072B2', cex=2)
+dev.off()
+```
+
+### 6. Phenology plot (Fig. 1a)
+```{r}
+
+
+```
 
 ## References
 
@@ -679,3 +784,4 @@ dev.off()
 1. Lebreton, J.-D., Burnham, K. P., Clobert, J. & Anderson, D. R. Modeling survival and testing biological hypotheses using marked animals: a unified approach with case studies. Ecol. Monogr. 62, 67–118 (1992).<a id="lebreton"></a>
 1. White, G. C. & Burnham, K. P. Program MARK: survival estimation from populations of marked animals. Bird Study 46, S120–S139 (1999).<a id="white"></a>
 1. Laake, J. L. RMark: An R interface for analysis of capture-recapture data with MARK. 25 (Alaska Fish. Sci. Cent., NOAA, Natl. Mar. Fish. Serv., 2013).<a id="laake"></a>
+1. Kéry, M. & Schaub, M. Bayesian population analysis using WinBUGS a hierarchical perspective. (Academic Press, 2012).<a id="kery-schaub"></a>
