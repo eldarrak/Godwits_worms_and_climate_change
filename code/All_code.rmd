@@ -538,6 +538,7 @@ export.MARK(Godwit.data, 'godwit_data', Res, replace=TRUE)
 ```
 >Estimated c-hat = 1.1445372 with sampling SE = 0.0037387
 >95% Conf. Interval c-hat = 1.0882953 to 1.2007791
+
 So we can adjust our response 
 ```{r}
 Res_adj<-adjust.chat(Res, chat=1.1445372)
