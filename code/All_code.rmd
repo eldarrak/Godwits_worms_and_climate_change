@@ -16,7 +16,8 @@ area.longlat<-readRDS(gzcon(url('https://git.io/vXRBz')))
 ```
 Download and read in R all snow data from NOAA
 ```{r} 
-download.file('ftp://data.ncdc.noaa.gov/cdr/snowcover/nhsce_v01r01_19661004_20160905.nc', destfile='snow.nc', method="internal", mode="wb")
+download.file('ftp://data.ncdc.noaa.gov/cdr/snowcover/nhsce_v01r01_19661004_20160905.nc',
+               destfile='snow.nc', method="internal", mode="wb")
 dat <- nc_open('snow.nc')
 t <- ncvar_get(dat,'time') ## "days since 1966-10-03"
 z <- ncvar_get(dat,'snow_cover_extent')
@@ -43,7 +44,8 @@ area <- spTransform(area.longlat, CRS(projSnow))
 ```
 ### 1.4 Rasterize
 ```{r}
-r <- raster(xmn = min(xy[,1]), xmx = max(xy[,1]), ymn = min(xy[,2]), ymx = max(xy[,2]), nrow=88, ncol=88)
+r <- raster(xmn = min(xy[,1]), xmx = max(xy[,1]), ymn = min(xy[,2]),
+            ymx = max(xy[,2]), nrow=88, ncol=88)
 tmp <- rasterize(xy, y = r, field = values(snow[[1]]))
 
 plot(tmp)
@@ -53,9 +55,7 @@ wrld <- spTransform(subset(wrld_simpl, NAME != "Antarctica"), CRS(projSnow))
 plot(as(wrld, "SpatialLines"), add = TRUE, col = "red")
 
 out <- data.frame(Date = date, Z = NA)
-
 # following loop takes ~ 20 minutes brt
-
 for(i in 1982:2016) {
    cat(round(i/length(names(snow)),4), "%   ", "\r")
    for(w in 1:length(date[as.numeric(format(date, "%Y"))==i])) {
@@ -79,20 +79,18 @@ plot(Z~Date, data=subset(out, !is.na(Z)), type='l')
 Index<-which(out$zz[-1]*out$zz[-length(out$zz)]<=0 & out$zz[-length(out$zz)]>=0)
 Years_tmp<-unique(as.numeric(format(out$Date[Index], '%Y')))
 #dates with last measurement
-Dates_last<-as.POSIXct(sapply(Years_tmp, FUN=function(x) out$Date[Index][as.numeric(format(out$Date[Index], "%Y")) == x ] [1]), origin='1970-01-01')
-Index_last<-sapply(Years_tmp, FUN=function(x) Index[as.numeric(format(out$Date[Index], "%Y")) == x ] [1])
-# now I need to get to approximated dates.
-
+Dates_last<-as.POSIXct(sapply(Years_tmp, FUN=function(x) 
+            out$Date[Index][as.numeric(format(out$Date[Index], "%Y")) == x ] [1]), origin='1970-01-01')
+Index_last<-sapply(Years_tmp, FUN=function(x) 
+            Index[as.numeric(format(out$Date[Index], "%Y")) == x ] [1])
 Weight_second<-(out$Z[Index_last]-0.5)/(out$Z[Index_last] - out$Z[Index_last+1])
 Weight_first<-1-Weight_second
-Weighted_dates<-as.POSIXct(as.numeric(out$Date[Index_last])*Weight_first + as.numeric(out$Date[Index_last+1])*Weight_second, origin='1970-01-01')
-
+Weighted_dates<-as.POSIXct(as.numeric(out$Date[Index_last])*Weight_first +
+                as.numeric(out$Date[Index_last+1])*Weight_second, origin='1970-01-01')
 Res<-data.frame(Year=Years_tmp, Date50=Weighted_dates)
 Res$jdate50<-as.numeric(format(Res$Date50, '%j'))
-
 plot(jdate50~Year, data=subset(Res))
 summary(lm(jdate50~Year, data=subset(Res, Year>1995)))
 Snow50<-Res
 save(Snow50, file='Snow50.RData')
 ```
-
