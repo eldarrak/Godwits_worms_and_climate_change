@@ -187,7 +187,9 @@ load(url('https://git.io/vXE0v'))
 ### 2.5 Look at the output
 ```{r}
 print(migration_model)
-Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real), arrival=migration_model$BUGSoutput$mean$T_0k, sigma=migration_model$BUGSoutput$mean$sigma)
+Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real), 
+                     arrival=migration_model$BUGSoutput$mean$T_0k,
+                     sigma=migration_model$BUGSoutput$mean$sigma)
 write.csv(Arrivals, file="Arrivals_migration_model.csv", row.names=F)
 ```
 ### 3 
