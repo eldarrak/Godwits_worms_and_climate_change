@@ -767,12 +767,161 @@ points(rowSums(y.matrix)~ Years, pch='+', col='#0072B2', cex=2)
 dev.off()
 ```
 
-### 6. Phenology plot (Fig. 1a)
+## 6. Phenology plot (Fig. 1a)
+### 6.1 Load data
+```{r}
+# read Snow
+Snow<-read.csv('https://git.io/vXu3V', as.is=TRUE)
+names(Snow)<-c('Yr', 'Date', 'yday')
+Snow$Date<-as.Date(Snow$Date, tz='GMT')
+
+# read breeding data
+Nests<-read.csv('https://git.io/vXu3y', as.is=TRUE)
+Nests$Date<-as.Date(Nests$Date, tz='GMT', format='%Y-%m-%d' )
+
+# read crane flies
+Tipula<-read.csv('https://git.io/vXu3x', as.is=TRUE)
+Tipula$Date<-as.Date(Tipula$Date, tz='GMT', format='%Y-%m-%d' )
+
+# read arrivals to Khatanga
+Arrivals_Khat<-read.csv('https://git.io/vXusf', as.is=TRUE)
+Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
+
+# read arrivals to Wadden Sea (predicted by arrival model)
+Arr_Wadden<-read.csv('https://git.io/vXED0')
+names(Arr_Wadden)[2]<-'yday'
+```
+### 6.2 Estimate linear slopes of phenological events in time
+```{r}
+summary(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2014))))
+summary(lm(yday~Yr+Region, data=Tipula))
+summary(lm(yday~Yr+Region, data=Nests))
+summary(lm(yday~Yr, data=Arrivals_Khat))
+summary(lm(yday~Yr, data=Arr_Wadden))
+```
+### 6.3 Plot the figure
+Here I will first plot on device and then into .pdf
+```{r}
+par(mar=c(4,4,2,4))
+# snow melt
+plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2015),axes=FALSE, ylab='')
+axis(1)
+box()
+Snow<-subset(Snow, Yr %in% c(1992:2016))
+polygon(y=c(Snow$yday, rep(200, length(Snow$yday))), 
+        x=c(Snow$Yr, rev(Snow$Yr)),  pch=21, cex=4, 
+	bg=grey(0.5), lwd=2, col='#bae4bc', border='#7bccc4')
+# time lines
+abline(h=121, col=grey(0.5))
+abline(h=152, col=grey(0.5))
+abline(h=182, col=grey(0.5))
+abline(h=121+15, col=grey(0.5), lty=2)
+abline(h=152+15, col=grey(0.5), lty=2)
+# and lables for them
+par(xpd=TRUE)
+text(y=121, x=2019, '1 May')
+text(y=152, x=2019, '1 June')
+text(y=182, x=2019, '1 July')
+par(xpd=FALSE)
+# snow
+abline(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2015))), col='#7bccc4', lwd=2)
+# tipula
+points(yday~Yr, data=Tipula, pch=21, bg='#33a02c', lwd=1, cex=2, col=NULL )
+lm_tipula<-lm(yday~Yr+Region, data=Tipula)
+lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
+              c(1992,2016),lwd=2, col='#33a02c')
+lines(predict(lm_tipula, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
+              c((2004-0.5):(2007+0.5)), lwd=2, col='#33a02c', lty=2)
+# nests
+points(yday~Yr, data=Nests, pch='+', cex=2,  lwd=1, col='#cc79a7')
+lm_nests<-lm(yday~Yr+Region, data=Nests)
+lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
+              c(1992,2016), lwd=2, col='#cc79a7')
+lines(predict(lm_nests, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
+              c((2004-0.5):(2007+0.5)), lwd=2, col='#cc79a7', lty=2)
+# Khat arrivals
+abline(lm(yday~Yr, data=Arrivals_Khat),col='#E69F00', lwd=2)
+points(yday~Yr, data=Arrivals_Khat,  pch=21, cex=2, bg='#E69F00', lwd=1, col=NULL)
+# Wadden arrivals..
+Width=0.25
+Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
+Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
+Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
+Stayovers$time_scales<-abs(1-(Stayovers$Yr-(min(Stayovers$Yr)-1))/
+                       (max((Stayovers$Yr-(min(Stayovers$Yr)-1))+1)))
+MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
+My_colors<-MyColor_palette(100)
+rect(xleft=Stayovers$Yr-Width, xright=Stayovers$Yr+Width, 
+     ybottom=Stayovers$yday, ytop=Stayovers$Departure, 
+     border=NA, col=My_colors[round(Stayovers$time_scales*100)])
+abline(lm(yday~Yr, data=Arr_Wadden), col='#FC8D62', lwd=2)
+points(yday~Yr, data=Arr_Wadden, bg='#FC8D62', pch=23, cex=2, col=grey(0.9))
+box()
+
+#---------------------------------------------------------------------------------------
+# And now the same into pdf
+pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
+par(mar=c(4,4,2,4))
+# snow melt
+plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2015),axes=FALSE, ylab='')
+axis(1)
+box()
+Snow<-subset(Snow, Yr %in% c(1992:2016))
+polygon(y=c(Snow$yday, rep(200, length(Snow$yday))), 
+        x=c(Snow$Yr, rev(Snow$Yr)),  pch=21, cex=4, 
+	bg=grey(0.5), lwd=2, col='#bae4bc', border='#7bccc4')
+# time lines
+abline(h=121, col=grey(0.5))
+abline(h=152, col=grey(0.5))
+abline(h=182, col=grey(0.5))
+abline(h=121+15, col=grey(0.5), lty=2)
+abline(h=152+15, col=grey(0.5), lty=2)
+# and lables for them
+par(xpd=TRUE)
+text(y=121, x=2019, '1 May')
+text(y=152, x=2019, '1 June')
+text(y=182, x=2019, '1 July')
+par(xpd=FALSE)
+# snow
+abline(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2015))), col='#7bccc4', lwd=2)
+# tipula
+points(yday~Yr, data=Tipula, pch=21, bg='#33a02c', lwd=1, cex=2, col=NULL )
+lm_tipula<-lm(yday~Yr+Region, data=Tipula)
+lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
+              c(1992,2016),lwd=2, col='#33a02c')
+lines(predict(lm_tipula, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
+              c((2004-0.5):(2007+0.5)), lwd=2, col='#33a02c', lty=2)
+# nests
+points(yday~Yr, data=Nests, pch='+', cex=2,  lwd=1, col='#cc79a7')
+lm_nests<-lm(yday~Yr+Region, data=Nests)
+lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
+              c(1992,2016), lwd=2, col='#cc79a7')
+lines(predict(lm_nests, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
+              c((2004-0.5):(2007+0.5)), lwd=2, col='#cc79a7', lty=2)
+# Khat arrivals
+abline(lm(yday~Yr, data=Arrivals_Khat),col='#E69F00', lwd=2)
+points(yday~Yr, data=Arrivals_Khat,  pch=21, cex=2, bg='#E69F00', lwd=1, col=NULL)
+# Wadden arrivals..
+Width=0.25
+Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
+Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
+Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
+Stayovers$time_scales<-abs(1-(Stayovers$Yr-(min(Stayovers$Yr)-1))/
+                       (max((Stayovers$Yr-(min(Stayovers$Yr)-1))+1)))
+MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
+My_colors<-MyColor_palette(100)
+rect(xleft=Stayovers$Yr-Width, xright=Stayovers$Yr+Width, 
+     ybottom=Stayovers$yday, ytop=Stayovers$Departure, 
+     border=NA, col=My_colors[round(Stayovers$time_scales*100)])
+abline(lm(yday~Yr, data=Arr_Wadden), col='#FC8D62', lwd=2)
+points(yday~Yr, data=Arr_Wadden, bg='#FC8D62', pch=23, cex=2, col=grey(0.9))
+box()
+dev.off()
+```
+## 7. Stayover duration - lugworms - godwit survival (Fig. 2)
 ```{r}
 
-
 ```
-
 ## References
 
 1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
