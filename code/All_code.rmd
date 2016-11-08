@@ -122,7 +122,7 @@ model {
     }	
     #Priors
     for (k in 1:nYears) {
-       total_k_src[k] ~ dnorm(0, 0.10)#T(0,)
+       total_k_src[k] ~ dnorm(0, 0.10)
        T_0k[k]~dnorm(125, 0.1)
        sigma[k]~dnorm(2, 0.1)T(0,)
     }
@@ -192,8 +192,193 @@ Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real),
                      sigma=migration_model$BUGSoutput$mean$sigma)
 write.csv(Arrivals, file="Arrivals_migration_model.csv", row.names=F)
 ```
-### 3 
+## 3 Fuelling rates and their relationship with lugworm abundance
+### 3.1 Estimate yearly arrival weights from Castricum data
+```{r}
+library(lme4)
+Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
+Capture_data$date<-as.Date(Capture_data$date)
 
+# arrival weight females
+aggr_data_females<-subset(Capture_data, Sex==2 & Site == "Castricum")
+Arrival_weight_females<-aggregate(aggr_data_females$Mass, 
+                         by=list(aggr_data_females$Yr), FUN=mean)
+names(Arrival_weight_females)  <-c("Yr", "Arr_Weight")
+aggr_data_females$fYr<-as.factor(aggr_data_females$Yr)
+weight_model_females<-lmer(Mass~-1+(1|fYr), data=aggr_data_females)
+mu_W0_females<-coef(weight_model_females)$fYr[,1]
+sigma2_W0_females<-var(residuals(weight_model_females))
+
+# arrival weight males
+aggr_data_males<-subset(Capture_data,  Sex==1 & Site == "Castricum")
+Arrival_weight_males<-aggregate(aggr_data_males$Mass,
+                         by=list(aggr_data_males$Yr), FUN=mean)
+names(Arrival_weight_males)  <-c("Yr", "Arr_Weight")
+aggr_data_males$fYr<-as.factor(aggr_data_males$Yr)
+weight_model_males<-lmer(Mass~-1+(1|fYr), data=aggr_data_males)
+mu_W0_males<-coef(weight_model_males)$fYr[,1]
+sigma2_W0_males<-var(residuals(weight_model_males)) 
+
+Arrival_weights<-data.frame( Yr=as.numeric(levels(aggr_data_females$fYr)), Male_arrival_weight=mu_W0_males, Female_arrival_weight=mu_W0_females)
+write.csv(Arrival_weights, file='Arrival_weights.csv', row.names=FALSE)
+```
+
+### 3.2 load packages and data
+Here we load **arrival time** estimated in 2.5 data on lugworm densities in the Dutch Wadden Sea.
+```{r}
+library(R2jags)
+Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
+Capture_data$date<-as.Date(Capture_data$date)
+Arrivals<-read.csv("https://git.io/vXED0")
+names(Arrivals)[2]<-"arrival_day"
+Data_to_model<-merge(subset(Capture_data, Site!='Castricum'), Arrivals)
+mu_T0<-Arrivals$arrival[Arrivals$Yr %in% unique(Data_to_model$Yr)]
+sigma2_T0<-(Arrivals$sigma^2)[Arrivals$Yr %in% unique(Data_to_model$Yr)]
+
+# Lugworms
+Lugworms<-read.csv('https://git.io/vXESR')
+```
+### 3.3 Formulate model
+```{r}
+sink("fuelling_model.jags")
+
+cat("
+    model {
+    # prior
+    for (i in 1:N) {    
+       T0[i] ~ dnorm(mu_T0[i2k[i]], tau_T0[i2k[i], i2s[i]])
+    }
+
+    # Michaelins - Menten or functional response type II equation for fuelling on lugworms
+    for(k in 1:K) {
+       Alpha_t[k,1] ~ dnorm(((11*Lugworms[k])/(K_sat_m+Lugworms[k])),
+	                         1/sigma2_alpha)
+       Alpha_t[k,2] ~ dnorm(((13.2*Lugworms[k])/(K_sat_f+Lugworms[k])),
+                             1/sigma2_alpha_fem)
+    # 11 for males and 13.2 for females are fuelling maximum rates measured by Prokosch
+	}
+
+    # Likelihood
+    for (i in 1:N) {
+       Wt_mu[i] <- mu_W0[i2k[i],i2s[i]]+(Time[i]-T0[i])*(Alpha_t[i2k[i], i2s[i]])
+       Wt[i] ~ dnorm(Wt_mu[i],Wt_tau[i2k[i], i2s[i]])
+    }
+  
+    # params an hyper-priors
+    for (k in 1:K) {
+       for (s in 1:2) {
+          Wt_s2[k,s] <- sigma2_W0[s]
+          Wt_tau[k,s]<-1/Wt_s2[k,s]
+       }
+    }
+    sigma2_alpha~dunif(0, 5)  
+    sigma2_alpha_fem~dunif(0, 5)  
+  
+    K_sat_m~dunif(1, 20)
+    K_sat_f~dunif(1, 20)
+    
+    for(k in 1:K) {
+       tau_T0[k,1]<-1/(sigma2_T0[k]+sigma2_W0[1]/Alpha_t[k,1]) 
+       tau_T0[k,2]<-1/(sigma2_T0[k]+sigma2_W0[2]/Alpha_t[k,2])
+    }
+}",fill = TRUE)
+sink()
+```
+### 3.4 Prepare data and inits
+```{r}
+Data=list(Wt=Data_to_model$Mass, Time=Data_to_model$yday,
+          i2k=as.numeric(as.factor(Data_to_model$Yr)),
+          i2s=Data_to_model$Sex, N=length(Data_to_model$Mass), 
+	  K=length(unique(Data_to_model$Yr)),
+	  mu_W0=cbind(mu_W0_males, mu_W0_females), 
+	  sigma2_W0=c(sigma2_W0_males, sigma2_W0_females),
+	  mu_T0=mu_T0,
+	  sigma2_T0=sigma2_T0, Lugworms=Lugworms_vec)
+
+inits=function() {
+   list(sigma2_alpha=runif(1, 0, 5),
+   sigma2_alpha_fem=runif(1, 0, 5),
+   K_sat_m=runif(1, 1, 13),
+   K_sat_f=runif(1, 1, 13))
+}
+jags.params=c("Alpha_t", "sigma2_alpha", "sigma2_alpha_fem", "K_sat_m", "K_sat_f")
+```
+### 3.5 Run the model
+```{r}
+if (Run_everything) {
+   # following run takes ~ 5 minutes brt
+   fuelling_model<- jags(data=Data, inits, parameters=jags.params,
+                    "fuelling_model.jags", n.chains = 2, n.thin = 10,
+		    n.iter = 10000, n.burnin = 1000, working.directory = getwd())
+save(fuelling_model, file='fuelling_model.RData')
+} else {
+load(url('https://git.io/vXEQu'))
+}
+```
+### 3.6 Explore and save model results
+```{r}
+print(fuelling_model)
+
+Years<-unique(as.numeric((Data_to_model$Yr)))
+# save estimated slopes for survival model
+Fuelling_slopes<-data.frame(Yr=Years,
+               Fuelling_slope_males=fuelling_model$BUGSoutput$mean$Alpha_t[,1],
+               Fuelling_slope_females=fuelling_model$BUGSoutput$mean$Alpha_t[,2],
+               Fuelling_slope_males_predicted=11*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_m+Lugworms_vec),
+	       Fuelling_slope_females_predicted=13.4*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_f+Lugworms_vec))
+write.csv(Fuelling_slopes, file='Fuelling_slopes.csv', row.names=FALSE)
+```
+### 3.7 Plot estimated fuelling slopes by lugworm abundance
+```{r}
+time_scales<-abs(1-(Years-(min(Years)-1))/(max((Years-(min(Years)-1))+1)))
+MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
+My_colors<-MyColor_palette(100)
+
+pdf('fueling rate Oct 2016.pdf', useDingbats=FALSE, width=10, height=10)
+par(mfrow=c(1,2))
+
+#-----------------------------
+# males plot
+
+plot(fuelling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms_vec, ylim=c(3.5,8.5),  ylab='fueling rate (g per day)', xlab='lugworm density, ind. per sq.m', main='Males',  las=1, type='n')
+
+XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
+Y_m<- t(sapply(XX, FUN=function(x) quantile(x*11 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_m), probs=c(0.025, 0.5,0.975))))
+
+lines(Y_m[,1]~XX, lty=2)
+lines(Y_m[,2]~XX, lwd=2)
+lines(Y_m[,3]~XX, lty=2)
+
+for (i in 1:length(Lugworms_vec)) {
+   points(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i], pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
+
+   text(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i], labels = substr(Years[i],3,4))
+}
+
+box()
+
+#-----------------
+# females graph
+plot(fuelling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms_vec, ylim=c(3.5,8.5), ylab='fueling rate (g per day)', xlab='lugworm density, ind. per sq.m', main='Females' ,las=1, type='n')
+
+XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
+Y_fem<- t(sapply(XX, FUN=function(x) quantile(x*13.2 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_f), probs=c(0.025, 0.5,0.975))))
+
+lines(Y_fem[,1]~XX, lty=1)
+lines(Y_fem[,2]~XX, lwd=2)
+lines(Y_fem[,3]~XX, lty=1)
+
+
+for (i in 1:length(Lugworms_vec)) {
+   points(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i], pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
+
+   text(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i], labels = substr(Years[i],3,4))
+}
+box()
+
+dev.off()
+
+```
 
 
 ## References
