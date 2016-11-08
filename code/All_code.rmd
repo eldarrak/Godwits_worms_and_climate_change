@@ -1,7 +1,10 @@
 # Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird
 -----
 **_Eldar Rakhimberdiev_**
-
+Parts of this code take time to run, so if you want to go through examples fast you can specify
+```{r}
+Run_everything=FALSE # Change it to TRUE if you want run everything on you system
+```
 ## 1.Processing snow
 ### 1.1 Download publically available data
 Download snow data from ...
@@ -56,21 +59,23 @@ plot(as(wrld, "SpatialLines"), add = TRUE, col = "red")
 
 out <- data.frame(Date = date, Z = NA)
 # following loop takes ~ 20 minutes brt
-for(i in 1982:2016) {
-   cat(round(i/length(names(snow)),4), "%   ", "\r")
-   for(w in 1:length(date[as.numeric(format(date, "%Y"))==i])) {
-      ind <- which(as.numeric(format(date, "%Y"))==i)[w]
-      tmp1 <- rasterize(xy, y = tmp, field = values(snow[[ind]]))
-      tmp2 <- crop(tmp1, area) 
-      tmp3 <- resample(tmp2, 
-                   raster(extent(tmp2), ncol = 6, nrow = 12),
-                   method = "ngb")
-      out[ind,2] <- extract(tmp3, area, mean, na.rm=T)
-     }
+if (Run_everything) {
+   for(i in 1982:2016) {
+      cat(round(i/length(names(snow)),4), "%   ", "\r")
+      for(w in 1:length(date[as.numeric(format(date, "%Y"))==i])) {
+         ind <- which(as.numeric(format(date, "%Y"))==i)[w]  
+         tmp1 <- rasterize(xy, y = tmp, field = values(snow[[ind]]))
+         tmp2 <- crop(tmp1, area) 
+         tmp3 <- resample(tmp2, 
+                      raster(extent(tmp2), ncol = 6, nrow = 12),
+                      method = "ngb")
+         out[ind,2] <- extract(tmp3, area, mean, na.rm=TRUE)
+        }
+   }
+   #save(out, file = "snow.RData")
+} else {
+   load("snow.RData")
 }
-
-# save(out, file = "snow.RData")
-# load("snow.RData")
 ```
 ```{r}
 out$zz<-out$Z-0.5
@@ -93,4 +98,5 @@ plot(jdate50~Year, data=subset(Res))
 summary(lm(jdate50~Year, data=subset(Res, Year>1995)))
 Snow50<-Res
 save(Snow50, file='Snow50.RData')
+write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
 ```
