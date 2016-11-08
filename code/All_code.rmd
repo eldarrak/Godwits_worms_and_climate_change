@@ -103,12 +103,12 @@ write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
 ## 2. Arrival dates from citizen science data
 We used data from citizen science project www.trektellen.nl and modelled them with approach similar to one used in Lindén & Mäntyniemi ([2011](#lindén-mäntyniemi)). Model was estimated with JAGS sampler ([Plummer 2003](#plummer)) via R2jags ([Su & Yahima 2015](#su-yahima)) interface from R.
 _TO run code from this chapter you need to install JAGS software_
-Load packages and data
+### 2.1 Load packages and data
 ```{r}
 library(R2jags)
-sites_years_dates<-read.csv('https://git.io/vXEBH', as.is=T)
+sites_years_dates<-read.csv('https://git.io/vXEBH', as.is=TRUE)
 ```
-Formulate the model in JAGS language
+### 2.2 Formulate model in JAGS language
 ```{r}
 sink("migration_model.jags") 
 cat("
@@ -119,8 +119,7 @@ model {
 	  site_i[Site[Obs]]+Offset[Obs]-((Date[Obs]-
 	  T_0k[Year[Obs]])^2)/(2*sigma[Year[Obs]]^2)-
 	  0.9189385-log(sigma[Year[Obs]])
-    }
-	
+    }	
     #Priors
     for (k in 1:nYears) {
        total_k_src[k] ~ dnorm(0, 0.10)#T(0,)
@@ -137,7 +136,6 @@ model {
     for (Obs in 1:nObs) { 
       p[Obs]<- r/(r+N[Obs])
     }
- 
     #Likelihood
     for (Obs in 1:nObs) {
        Y[Obs]~dnegbin( p[Obs] , r )
@@ -145,31 +143,31 @@ model {
 }",fill = TRUE)
 sink()
 ```
-Prepare data and inits
+### 2.3 Prepare data and inits
 ```{r}
 Data<-list('nObs'=nrow(sites_years_dates),
            'nYears'=length(unique(sites_years_dates$Year)),
-		       'nSites'=length(unique(sites_years_dates$Site)),
+           'nSites'=length(unique(sites_years_dates$Site)),
            'Year'=as.numeric(as.factor(sites_years_dates$Year)),
            'Site'=as.numeric(as.factor(sites_years_dates$Site)),
-		       'Date'=sites_years_dates$yday,
-		       'Offset'=log(sites_years_dates$Duration),
-		       'Y'=sites_years_dates$north)
+           'Date'=sites_years_dates$yday,
+           'Offset'=log(sites_years_dates$Duration),
+           'Y'=sites_years_dates$north)
 nSites=length(unique(sites_years_dates$Site))
 nYears=length(unique(sites_years_dates$Year))
 inits=function() {list(
            'a0' =runif(1,3,10),
            'total_k_src'=rnorm(nYears, 0, 1), 
-		       'T_0k'=rnorm(nYears, 125, 2),
-		       'site_i_src'=log(plogis(rnorm(nSites, 0, 0.5))),
-	         'sigma'=rnorm(nYears, 8, 2))
+           'T_0k'=rnorm(nYears, 125, 2),
+           'site_i_src'=log(plogis(rnorm(nSites, 0, 0.5))),
+           'sigma'=rnorm(nYears, 8, 2))
 }
 jags.params=c("a0","total_k", "T_0k", "site_i", "sigma", "r")
 ```
-Run the model
+### 2.4 Run the model
 ```{r}
 if (Run_everything) {
-   # following loop takes ~ 20 minutes brt
+   # following run takes ~ 5 minutes brt
    nchains<-parallel::detectCores()-1
    migration_model<-jags.parallel(data=Data, 
                   inits, 
@@ -186,6 +184,16 @@ if (Run_everything) {
 load(url('https://git.io/vXE0v'))
 }
 ```
+### 2.5 Look at the output
+```{r}
+print(migration_model)
+Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real), arrival=migration_model$BUGSoutput$mean$T_0k, sigma=migration_model$BUGSoutput$mean$sigma)
+write.csv(Arrivals, file="Arrivals_migration_model.csv", row.names=F)
+```
+### 3 
+
+
+
 ## References
 
 1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
