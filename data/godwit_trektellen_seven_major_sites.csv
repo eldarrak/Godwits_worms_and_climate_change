@@ -1,4 +1,4 @@
-"siteid","countdate","d","m","y","obshours","south","north","Date","Duration","count_per_hour","yday"
+"Site","countdate","d","m","Year","obshours","south","north","Date","Duration","count_per_hour","yday"
 429,"1993-05-11",11,5,1993,"06:00:00",0,1281,1993-05-11,6,213.5,131
 429,"1993-05-07",7,5,1993,"04:00:00",0,1145,1993-05-07,4,286.25,127
 159,"1993-04-19",19,4,1993,"02:00:00",0,219,1993-04-19,2,109.5,109
