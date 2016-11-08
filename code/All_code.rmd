@@ -218,7 +218,9 @@ weight_model_males<-lmer(Mass~-1+(1|fYr), data=aggr_data_males)
 mu_W0_males<-coef(weight_model_males)$fYr[,1]
 sigma2_W0_males<-var(residuals(weight_model_males)) 
 
-Arrival_weights<-data.frame( Yr=as.numeric(levels(aggr_data_females$fYr)), Male_arrival_weight=mu_W0_males, Female_arrival_weight=mu_W0_females)
+Arrival_weights<-data.frame(Yr=as.numeric(levels(aggr_data_females$fYr)),
+                            Male_arrival_weight=mu_W0_males,
+			    Female_arrival_weight=mu_W0_females)
 write.csv(Arrival_weights, file='Arrival_weights.csv', row.names=FALSE)
 ```
 
@@ -322,10 +324,10 @@ print(fuelling_model)
 Years<-unique(as.numeric((Data_to_model$Yr)))
 # save estimated slopes for survival model
 Fuelling_slopes<-data.frame(Yr=Years,
-               Fuelling_slope_males=fuelling_model$BUGSoutput$mean$Alpha_t[,1],
-               Fuelling_slope_females=fuelling_model$BUGSoutput$mean$Alpha_t[,2],
-               Fuelling_slope_males_predicted=11*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_m+Lugworms_vec),
-	       Fuelling_slope_females_predicted=13.4*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_f+Lugworms_vec))
+         Fuelling_slope_males=fuelling_model$BUGSoutput$mean$Alpha_t[,1],
+         Fuelling_slope_females=fuelling_model$BUGSoutput$mean$Alpha_t[,2],
+         Fuelling_slope_males_predicted=11*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_m+Lugworms_vec),
+         Fuelling_slope_females_predicted=13.4*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_f+Lugworms_vec))
 write.csv(Fuelling_slopes, file='Fuelling_slopes.csv', row.names=FALSE)
 ```
 ### 3.7 Plot estimated fuelling slopes by lugworm abundance
