@@ -101,7 +101,8 @@ summary(lm(jdate50~Year, data=subset(Res, Year>1995)))
 Snow50<-Res
 write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
 ```
-
+## 2. Arrival dates from citizen science data
+We used data from citizen science project www.trektellen.nl and modelled them with approach similar to one used in Lindén & Mäntyniemi ([2011](#lindén-mäntyniemi)). Model was estimated with JAGS sampler ([Plummer 2003](#plummer)) via R2jags ([Su & Yahima 2015](#su-yahima)) interface from R.
 
 
 ## References
@@ -109,3 +110,6 @@ write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
 1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
 1. Lappo, E., Tomkovich, P. & Syroechkovskiy, E. Atlas of breeding waders in the Russian Arctic. (2012).<a id="lappo"></a>
 1. van Gils, J. A. et al. Body shrinkage due to Arctic warming reduces red knot fitness in tropical wintering range. Science 352, 819–821 (2016).<a id="van-gils"></a>
+1. Lindén, A. & Mäntyniemi, S. Using the negative binomial distribution to model overdispersion in ecological count data. Ecology 92, 1414–1421 (2011).<a id="lindén-mäntyniemi"></a>
+1. Plummer, M. JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling. (2003).<a id="plummer"></a>
+1. Su, Y.-S. & Masanao Yajima. R2jags: Using R to Run ‘JAGS’. (2015).<a id="su-yahima"></a>
