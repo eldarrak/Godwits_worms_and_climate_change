@@ -1,12 +1,13 @@
 # Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird
 -----
 **_Eldar Rakhimberdiev_**
+
 Parts of this code take time to run, so if you want to go through examples fast you can specify
 ```{r}
 Run_everything=FALSE # Change it to TRUE if you want run everything on you system
 ```
 ## 1. Reconstruction of snow melt from remote sensing data
-We used NOAA CDR snow cover extent1 based on remote sensed data. Weekly snow cover data were downloaded on 24×24 km grid and subset by the limosa lapponica taimyrensis breeding range. Following code provided with [Brown & Robinson 2011](#brown-robinson), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
+We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _limosa lapponica taimyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
 ### 1.1 Download publically available data
 Download snow data from ...
 ```{r}
@@ -105,4 +106,6 @@ write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
 
 ## References
 
-Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
+1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
+1. Lappo, E., Tomkovich, P. & Syroechkovskiy, E. Atlas of breeding waders in the Russian Arctic. (2012).<a id="lappo"></a>
+1. van Gils, J. A. et al. Body shrinkage due to Arctic warming reduces red knot fitness in tropical wintering range. Science 352, 819–821 (2016).<a id="van-gils"></a>
