@@ -5,7 +5,8 @@ Parts of this code take time to run, so if you want to go through examples fast 
 ```{r}
 Run_everything=FALSE # Change it to TRUE if you want run everything on you system
 ```
-## 1.Processing snow
+## 1. Reconstruction of snow melt from remote sensing data
+We used NOAA CDR snow cover extent1 based on remote sensed data. Weekly snow cover data were downloaded on 24×24 km grid and subset by the limosa lapponica taimyrensis breeding range. Following code provided with [Brown & Robinson 2011](#brown-robinson), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
 ### 1.1 Download publically available data
 Download snow data from ...
 ```{r}
@@ -74,12 +75,12 @@ if (Run_everything) {
    }
    #save(out, file = "snow.RData")
 } else {
-   load("snow.RData")
-}
+   load(url("https://git.io/vXEnX"))
+   }
 ```
+### 1.5 Extract first date of 50% snow melt
 ```{r}
 out$zz<-out$Z-0.5
-
 plot(Z~Date, data=subset(out, !is.na(Z)), type='l')
 Index<-which(out$zz[-1]*out$zz[-length(out$zz)]<=0 & out$zz[-length(out$zz)]>=0)
 Years_tmp<-unique(as.numeric(format(out$Date[Index], '%Y')))
@@ -97,6 +98,11 @@ Res$jdate50<-as.numeric(format(Res$Date50, '%j'))
 plot(jdate50~Year, data=subset(Res))
 summary(lm(jdate50~Year, data=subset(Res, Year>1995)))
 Snow50<-Res
-save(Snow50, file='Snow50.RData')
 write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
 ```
+
+
+
+## References
+
+Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
