@@ -422,7 +422,61 @@ box()
 dev.off()
 ```
 ## 4. Departure fuel load effects on survival from capture-recapture data
-We used Cormack–Jolly–Seber (CJS) model ([Lebreton et al., 1992](#lebreton)) to model apparent survival independently from resighting probability. Set of nested models was estimated in program MARK ([White & Burnham, 1999](#white)) through RMark ([Laake, 2013](#laake)) interface.
+We used Cormack–Jolly–Seber (CJS) model ([Lebreton et al., 1992](#lebreton)) to model apparent survival independently from resighting probability. Set of nested models was estimated in program MARK ([White & Burnham, 1999](#white)) through RMark ([Laake, 2013](#laake)) interface.  To run model estimation with MARK or RMark you should first install program MARK from [here](http://www.phidot.org/software/mark/downloads).
+### 4.1 Load and prepare data
+```{r}
+library('RMark')
+
+# a. load main CR data
+Full_CH<-read.csv('https://git.io/vXEFF', colClasses='character', row.names='code')
+Full_CH$SEX<-as.factor(Full_CH$SEX)
+Full_CH$Rin_Place<-as.factor(Full_CH$ Rin_Place)
+
+# b. get arrivals to the Wadden Sea
+Arrivals_WS<-read.csv('https://git.io/vXESW')
+
+# c. get arrival weights
+Arrival_weights<-read.csv('https://git.io/vXEbX')
+
+# d. get annual slopes
+Fuelling_slopes<-read.csv('https://git.io/vXEb5')
+
+# e. get departures from Wadden Sea through arrival to Taimyr
+Arrival_Taimyr<-read.csv('https://git.io/vXEbj')
+Departures_Wadden<-Arrival_Taimyr[,c(1,3)]
+Departures_Wadden$yday<-Departures_Wadden$yday-4
+names(Departures_Wadden)[2]<-'departure'
+
+# f. now we combine all these measurements.
+All_staging_data<-merge(merge(merge(Arrivals_WS[,1:2], 
+                        Arrival_weights), Fuelling_slopes),Departures_Wadden)
+All_staging_data$Departure_fuel_load_females<-All_staging_data$Fuelling_slope_females*
+                                  (All_staging_data$departure-All_staging_data$arrival)
+All_staging_data$Departure_fuel_load_females_predicted<-All_staging_data$Fuelling_slope_females_predicted*
+                                  (All_staging_data$departure-All_staging_data$arrival)
+All_staging_data$Departure_fuel_load_males<-All_staging_data$Fuelling_slope_males*
+                                  (All_staging_data$departure-All_staging_data$arrival)
+All_staging_data$Departure_fuel_load_males_predicted<-All_staging_data$Fuelling_slope_males_predicted*
+                                  (All_staging_data$departure-All_staging_data$arrival)
+
+Departure_Weight_gain_Females<-rbind(
+    cbind(group='fCas', subset(All_staging_data,
+	select=c(Yr, Departure_fuel_load_females, Departure_fuel_load_females_predicted))),
+	cbind(group='fWad', subset(All_staging_data,
+	select=c(Yr, Departure_fuel_load_females, Departure_fuel_load_females_predicted))))
+names(Departure_Weight_gain_Females)[3]<-'Weight_gain'
+names(Departure_Weight_gain_Females)[4]<-'Weight_gain_predicted'
+Departure_Weight_gain_Males<- rbind(
+	cbind(group='mCas', subset(All_staging_data,
+	select=c(Yr, Departure_fuel_load_males, Departure_fuel_load_males_predicted))),
+	cbind(group='mWad', subset(All_staging_data,
+	select=c(Yr, Departure_fuel_load_males, Departure_fuel_load_males_predicted))))
+names(Departure_Weight_gain_Males)[3]<-'Weight_gain'
+names(Departure_Weight_gain_Males)[4]<-'Weight_gain_predicted'
+Departure_Weight_gain<-rbind(Departure_Weight_gain_Females, Departure_Weight_gain_Males)
+names(Departure_Weight_gain)[2]<-'time'
+Departure_Weight_gain<-subset(Departure_Weight_gain, time>2000)
+```
 
 
 ## References
