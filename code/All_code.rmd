@@ -377,7 +377,8 @@ time_scales<-abs(1-(Years-(min(Years)-1))/(max((Years-(min(Years)-1))+1)))
 MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
 My_colors<-MyColor_palette(100)
 
-# first we make a plot and second save it as pdf.
+if (Save_pdf) pdf('fueling rate Oct 2016.pdf', useDingbats=FALSE, width=10, height=10)
+
 par(mfrow=c(1,2))
 #-----------------------------
 # males plot
@@ -417,50 +418,7 @@ for (i in 1:length(Lugworms_vec)) {
    labels = substr(Years[i],3,4))
 }
 box()
-
-# Now the same but into pdf
-pdf('fueling rate Oct 2016.pdf', useDingbats=FALSE, width=10, height=10)
-par(mfrow=c(1,2))
-#-----------------------------
-# males plot
-plot(fuelling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms_vec,
-     ylim=c(3.5,8.5),  ylab='fueling rate (g per day)',
-     xlab='lugworm density, ind. per sq.m', main='Males',  las=1, type='n')
-XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
-Y_m<- t(sapply(XX, FUN=function(x) 
-              quantile(x*11 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_m),
-	      probs=c(0.025, 0.5,0.975))))
-lines(Y_m[,1]~XX, lty=2)
-lines(Y_m[,2]~XX, lwd=2)
-lines(Y_m[,3]~XX, lty=2)
-for (i in 1:length(Lugworms_vec)) {
-   points(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i],
-   pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
-   text(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i],
-   labels = substr(Years[i],3,4))
-}
-box()
-
-#-----------------
-# females plot
-plot(fuelling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms_vec,
-     ylim=c(3.5,8.5),ylab='fueling rate (g per day)',
-     xlab='lugworm density, ind. per sq.m', main='Females' ,las=1, type='n')
-XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
-Y_fem<- t(sapply(XX, FUN=function(x)
-                 quantile(x*13.2 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_f),
-		 probs=c(0.025, 0.5,0.975))))
-lines(Y_fem[,1]~XX, lty=1)
-lines(Y_fem[,2]~XX, lwd=2)
-lines(Y_fem[,3]~XX, lty=1)
-for (i in 1:length(Lugworms_vec)) {
-   points(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i],
-   pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
-   text(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i],
-   labels = substr(Years[i],3,4))
-}
-box()
-dev.off()
+if (Save_pdf) dev.off()
 ```
 ## 4. Departure fuel load effects on survival from capture-recapture data
 We used Cormack–Jolly–Seber (CJS) model ([Lebreton et al., 1992](#lebreton)) to model apparent survival independently from resighting probability. Set of nested models was estimated in program MARK ([White & Burnham, 1999](#white)) through RMark ([Laake, 2013](#laake)) interface.  To run model estimation with MARK or RMark you should first install program MARK from [here](http://www.phidot.org/software/mark/downloads).
@@ -642,46 +600,8 @@ write.csv(Estimates_females, file='female_survival_prediction.csv', row.names=TR
 write.csv(Estimates_males, file='male_survival_prediction.csv', row.names=TRUE)
 ```
 ### 4.6 Plot survival over departure fuel load
-I will first plot on screen and second into .pdf
 ```{r}
-par(mfrow=c(1,2))
-# Males
-plot(estimate~Male_weight_cov, data=Estimates_males,  ylim=c(0.8, 0.95),
-     ylab='Apparent Survival', xlab='Deposited fuel, g', las=1,
-     xlim=range(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad']),
-     type='n', main='Males')
-lines(estimate~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
-     min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad']) &
-     Male_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad'])), lwd=2)
-lines(ucl~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
-     min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad']) &
-     Male_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad'])), lwd=1)
-lines(lcl~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
-     min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad']) &
-     Male_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad'])), lty=1, lwd=1)
-
-#  Females
-plot(estimate~Female_weight_cov, data=Estimates_females,  ylim=c(0.8, 0.95),
-     ylab='Apparent Survival', xlab='Deposited fuel, g', las=1,
-     xlim=range(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']),
-     type='n', main='Females')
-lines(estimate~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
-     min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']) &
-     Female_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])), lwd=2)
-lines(ucl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
-     min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']) &
-     Female_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])) , lwd=1)
-lines(lcl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
-     min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']) &
-     Female_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])), lty=1, lwd=1)
-# and now pdf
-pdf('male_female_survival_over_fuel_load.pdf')
+if (Save_pdf) pdf('male_female_survival_over_fuel_load.pdf')
 
 par(mfrow=c(1,2))
 # Males
@@ -719,7 +639,7 @@ lines(lcl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
      min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']) &
      Female_weight_cov<=
      max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])), lty=1, lwd=1)
-dev.off()
+if (Save_pdf) dev.off()
 ```
 ## 5 Population trends from winter counts in Mauritania
 We modelled change in total population of godwits in state space modelled suggested by Kéry & Shcaub ([2012](#kery-schaub)), but with negative binomial error distribution.
@@ -798,10 +718,9 @@ if (Run_everything) {
 }
 ```
 ### 5.5 Plot model results for Panel C at Fig.1
-I will plot on the device first and to then to pdf.
 ```{r}
 print(Counts_model)
-par(mfrow=c(1,1))
+if (Save_pdf) pdf("Mauritania_counts.pdf", 5, 5)
 Predicted_densities<-as.data.frame(cbind(Years, 
       t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
       FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
@@ -813,21 +732,7 @@ polygon(x=c(Predicted_densities$Years, rev(Predicted_densities$Years)),
         y=c(Predicted_densities$lcl, rev(Predicted_densities$ucl)), col=Colors(5)[2], border=NA)
 lines(median~Years, data=Predicted_densities, col='#0072B2', lwd=2)
 points(rowSums(y.matrix)~ Years, pch='+', col='#0072B2', cex=2)
-
-# now to pdf
-pdf("Mauritania_counts.pdf", 5, 5)
-Predicted_densities<-as.data.frame(cbind(Years, 
-      t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
-      FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
-names(Predicted_densities)[2:4]<-c("lcl", "median","ucl")
-plot(median~Years, data=Predicted_densities, ylim=range(Predicted_densities[,2:4]),
-     type='n', las=1, ylab='')
-Colors<-colorRampPalette(c("white", "#0072B2"))
-polygon(x=c(Predicted_densities$Years, rev(Predicted_densities$Years)),
-        y=c(Predicted_densities$lcl, rev(Predicted_densities$ucl)), col=Colors(5)[2], border=NA)
-lines(median~Years, data=Predicted_densities, col='#0072B2', lwd=2)
-points(rowSums(y.matrix)~ Years, pch='+', col='#0072B2', cex=2)
-dev.off()
+if (Save_pdf) dev.off()
 ```
 
 ## 6. Phenology plot (Fig. 1a)
@@ -873,8 +778,8 @@ summary(lm(yday~Yr, data=Arrivals_Khat))
 summary(lm(yday~Yr, data=Arr_Wadden))
 ```
 ### 6.3 Plot the figure
-Here I will first plot on device and then into .pdf
 ```{r}
+if (Save_pdf) pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
 par(mar=c(4,4,2,4))
 # snow melt
 plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2015),axes=FALSE, ylab='')
@@ -930,66 +835,7 @@ rect(xleft=Stayovers$Yr-Width, xright=Stayovers$Yr+Width,
 abline(lm(yday~Yr, data=Arr_Wadden), col='#FC8D62', lwd=2)
 points(yday~Yr, data=Arr_Wadden, bg='#FC8D62', pch=23, cex=2, col=grey(0.9))
 box()
-
-#---------------------------------------------------------------------------------------
-# And now the same into pdf
-pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
-par(mar=c(4,4,2,4))
-# snow melt
-plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2015),axes=FALSE, ylab='')
-axis(1)
-box()
-Snow<-subset(Snow, Yr %in% c(1992:2016))
-polygon(y=c(Snow$yday, rep(200, length(Snow$yday))), 
-        x=c(Snow$Yr, rev(Snow$Yr)),  pch=21, cex=4, 
-	bg=grey(0.5), lwd=2, col='#bae4bc', border='#7bccc4')
-# time lines
-abline(h=121, col=grey(0.5))
-abline(h=152, col=grey(0.5))
-abline(h=182, col=grey(0.5))
-abline(h=121+15, col=grey(0.5), lty=2)
-abline(h=152+15, col=grey(0.5), lty=2)
-# and lables for them
-par(xpd=TRUE)
-text(y=121, x=2019, '1 May')
-text(y=152, x=2019, '1 June')
-text(y=182, x=2019, '1 July')
-par(xpd=FALSE)
-# snow
-abline(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2015))), col='#7bccc4', lwd=2)
-# tipula
-points(yday~Yr, data=Tipula, pch=21, bg='#33a02c', lwd=1, cex=2, col=NULL )
-lm_tipula<-lm(yday~Yr+Region, data=Tipula)
-lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
-              c(1992,2016),lwd=2, col='#33a02c')
-lines(predict(lm_tipula, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
-              c((2004-0.5):(2007+0.5)), lwd=2, col='#33a02c', lty=2)
-# nests
-points(yday~Yr, data=Nests, pch='+', cex=2,  lwd=1, col='#cc79a7')
-lm_nests<-lm(yday~Yr+Region, data=Nests)
-lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
-              c(1992,2016), lwd=2, col='#cc79a7')
-lines(predict(lm_nests, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
-              c((2004-0.5):(2007+0.5)), lwd=2, col='#cc79a7', lty=2)
-# Khat arrivals
-abline(lm(yday~Yr, data=Arrivals_Khat),col='#E69F00', lwd=2)
-points(yday~Yr, data=Arrivals_Khat,  pch=21, cex=2, bg='#E69F00', lwd=1, col=NULL)
-# Wadden arrivals..
-Width=0.25
-Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
-Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
-Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
-Stayovers$time_scales<-abs(1-(Stayovers$Yr-(min(Stayovers$Yr)-1))/
-                       (max((Stayovers$Yr-(min(Stayovers$Yr)-1))+1)))
-MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
-My_colors<-MyColor_palette(100)
-rect(xleft=Stayovers$Yr-Width, xright=Stayovers$Yr+Width, 
-     ybottom=Stayovers$yday, ytop=Stayovers$Departure, 
-     border=NA, col=My_colors[round(Stayovers$time_scales*100)])
-abline(lm(yday~Yr, data=Arr_Wadden), col='#FC8D62', lwd=2)
-points(yday~Yr, data=Arr_Wadden, bg='#FC8D62', pch=23, cex=2, col=grey(0.9))
-box()
-dev.off()
+if (Save_pdf) dev.off()
 ```
 ## 7. Stayover duration - lugworms - godwit survival (Fig. 2)
 ### 7.1 Load data
