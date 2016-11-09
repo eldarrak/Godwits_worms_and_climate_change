@@ -1,5 +1,5 @@
 # Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird
-**_Eldar Rakhimberdiev_**
+_Eldar Rakhimberdiev_
 ## 0. Set up output and run options
 ### 0.1 To run or to load?
 Parts of this code take time to run, so if you want to go through examples fast and do not want to install all the software
