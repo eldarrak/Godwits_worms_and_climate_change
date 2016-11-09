@@ -87,9 +87,13 @@ if (Run_everything) {
          out[ind,2] <- extract(tmp3, area, mean, na.rm=TRUE)
         }
    }
-   saveRDS(out, file = "snow.RDS")
+   saveRDS(out, file = "./results/snow.RDS")
 } else {
-   out<-readRDS(gzcon(url("https://git.io/vXgZb")))
+   if (Use_local_data) {
+      out<-readRDS('./results/snow.RDS')
+   } else {
+      out<-readRDS(gzcon(url("https://git.io/vXgZb")))
+   }
 }
 ```
 ### 1.5 Extract first date of 50% snow melt
@@ -120,7 +124,11 @@ _TO run code from this chapter you need to install JAGS software_
 ### 2.1 Load packages and data
 ```{r}
 library(R2jags)
-sites_years_dates<-read.csv('https://git.io/vXEBH', as.is=TRUE)
+if (Use_local_data) {
+   sites_years_dates<-read.csv('./data/godwit_trektellen_seven_major_sites.csv', as.is=TRUE)
+} else {
+   sites_years_dates<-read.csv('https://git.io/vXEBH', as.is=TRUE)
+}
 ```
 ### 2.2 Formulate model in JAGS language
 ```{r}
@@ -193,9 +201,13 @@ if (Run_everything) {
                   n.burnin = 200, 
                   working.directory = getwd())
    print(migration_model)
-   saveRDS(migration_model, file="migration_model.RDS")
+   saveRDS(migration_model, file='./results/migration_model.RDS')
 } else {
-migration_model<-readRDS(gzcon(url('https://git.io/vXgZG')))
+   if (Use_local_data) {   
+       migration_model<-readRDS('./results/migration_model.RDS')
+   } else {
+       migration_model<-readRDS(gzcon(url('https://git.io/vXgZG')))
+   }
 }
 ```
 ### 2.5 Look at the output
@@ -210,7 +222,11 @@ write.csv(Arrivals, file="Arrivals_migration_model.csv", row.names=F)
 ### 3.1 Estimate yearly arrival weights from Castricum data
 ```{r}
 library(lme4)
-Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
+if (Use_local_data) {
+   Capture_data<-read.csv('./data/Capture_data.csv', as.is=TRUE)
+} else {
+   Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
+}
 Capture_data$date<-as.Date(Capture_data$date)
 
 # arrival weight females
@@ -243,16 +259,22 @@ write.csv(Arrival_weights, file='Arrival_weights.csv', row.names=FALSE)
 Here we load **arrival time** estimated in 2.5 data on lugworm densities in the Dutch Wadden Sea.
 ```{r}
 library(R2jags)
-Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
+if (Use_local_data) {
+   Capture_data<-read.csv('./data/Capture_data.csv', as.is=TRUE)
+   Arrivals<-read.csv('./results/Arrivals_migration_model.csv')
+   Lugworms<-read.csv('./data/Lugworms.csv')
+} else {
+   Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
+   Arrivals<-read.csv('https://git.io/vXED0')
+   Lugworms<-read.csv('https://git.io/vXESR')
+}
+   
 Capture_data$date<-as.Date(Capture_data$date)
-Arrivals<-read.csv("https://git.io/vXED0")
 names(Arrivals)[2]<-"arrival_day"
 Data_to_model<-merge(subset(Capture_data, Site!='Castricum'), Arrivals)
 mu_T0<-Arrivals$arrival[Arrivals$Yr %in% unique(Data_to_model$Yr)]
 sigma2_T0<-(Arrivals$sigma^2)[Arrivals$Yr %in% unique(Data_to_model$Yr)]
 
-# Lugworms
-Lugworms<-read.csv('https://git.io/vXESR')
 Lugworms_vec<-Lugworms[Lugworms$Year %in% unique(Data_to_model$Yr),2]
 
 ```
@@ -328,9 +350,13 @@ if (Run_everything) {
    fuelling_model<- jags(data=Data, inits, parameters=jags.params,
                     "fuelling_model.jags", n.chains = 2, n.thin = 10,
 		    n.iter = 10000, n.burnin = 1000, working.directory = getwd())
-save(fuelling_model, file='fuelling_model.RData')
+   saveRDS(fuelling_model, file='./results/fuelling_model.RDS')
 } else {
-load(url('https://git.io/vXEQu'))
+   if (Use_local_data) {   
+      fuelling_model<-readRDS('./results/fuelling_model.RDS')
+   } else {
+      fuelling_model<-readRDS(gzcon(url('https://git.io/vXgvv')))
+   }
 }
 ```
 ### 3.6 Explore and save model results
@@ -441,23 +467,33 @@ We used Cormack–Jolly–Seber (CJS) model ([Lebreton et al., 1992](#lebreton))
 ### 4.1 Load and combine data
 ```{r}
 library('RMark')
+if (Use_local_data) {
+   # a. load main CR data
+   Full_CH<-read.csv('./data/Full_CH.csv', colClasses='character', row.names='code')
+   # b. get arrivals to the Wadden Sea
+   Arrivals_WS<-read.csv('./results/Arrivals_migration_model.csv')
+   # c. get arrival weights
+   Arrival_weights<-read.csv('./results/Arrival_weights.csv')
+   # d. get annual slopes
+   Fuelling_slopes<-read.csv('./results/Fuelling_slopes.csv')
+   # e. get departures from Wadden Sea through arrival to Taimyr
+   Arrival_Taimyr<-read.csv('./data/Arrivals_Khat.csv')
+} else {
+   # a. load main CR data
+   Full_CH<-read.csv('https://git.io/vXEFF', colClasses='character', row.names='code')
+   # b. get arrivals to the Wadden Sea
+   Arrivals_WS<-read.csv('https://git.io/vXESW')
+   # c. get arrival weights
+   Arrival_weights<-read.csv('https://git.io/vXEbX')
+   # d. get annual slopes
+   Fuelling_slopes<-read.csv('https://git.io/vXEb5')
+   # e. get departures from Wadden Sea through arrival to Taimyr
+   Arrival_Taimyr<-read.csv('https://git.io/vXEbj')
+}
 
-# a. load main CR data
-Full_CH<-read.csv('https://git.io/vXEFF', colClasses='character', row.names='code')
 Full_CH$SEX<-as.factor(Full_CH$SEX)
 Full_CH$Rin_Place<-as.factor(Full_CH$ Rin_Place)
 
-# b. get arrivals to the Wadden Sea
-Arrivals_WS<-read.csv('https://git.io/vXESW')
-
-# c. get arrival weights
-Arrival_weights<-read.csv('https://git.io/vXEbX')
-
-# d. get annual slopes
-Fuelling_slopes<-read.csv('https://git.io/vXEb5')
-
-# e. get departures from Wadden Sea through arrival to Taimyr
-Arrival_Taimyr<-read.csv('https://git.io/vXEbj')
 Departures_Wadden<-Arrival_Taimyr[,c(1,3)]
 Departures_Wadden$yday<-Departures_Wadden$yday-4
 names(Departures_Wadden)[2]<-'departure'
@@ -541,9 +577,13 @@ cml=create.model.list("CJS")
 ```{r}
 if (Run_everything) {
    Res<-  mark.wrapper(cml, data=Godwit.data, ddl=Godwit.ddl, delete=FALSE, profile.int=F)
-   saveRDS(Res, file='survival_result.RDS')
+   saveRDS(Res, file='./results/survival_result.RDS')
 } else {
+   if (Use_local_data) {
+      Res<-readRDS('./results/survival_result.RDS')
+   } else {
    Res<-readRDS(gzcon(url('https://git.io/vXueC')))
+   }
 }
 ```
 ### 4.4 median c-hat test in MARK
@@ -686,7 +726,11 @@ We modelled change in total population of godwits in state space modelled sugges
 ### 5.1 Load packages and data
 ```{r}
 library(R2jags)
-Counts<-read.csv('https://git.io/vXuL5')
+if (Use_local_data) {
+   Counts<-read.csv('./data/Counts_Mauritania.csv')
+} else {
+   Counts<-read.csv('https://git.io/vXuL5')
+}
 Areas<-sort(unique(Counts$Area))
 Years<-seq( min(unique(Counts$Yr)), max(unique(Counts$Yr)), 1)
 y.matrix<-matrix(ncol=length(Areas), nrow= length(Years))
@@ -744,9 +788,13 @@ if (Run_everything) {
    Counts_model<- jags(data=jags.data, inits, parameters=jags.params,
    "winter_counts_model.jags", n.chains = 2, n.thin = 10, n.iter = 20000,
    n.burnin = 5000, working.directory = getwd())
-   saveRDS(Counts_model, file='Mauritania_counts_model.RDS')
+   saveRDS(Counts_model, file='./results/Mauritania_counts_model.RDS')
 } else {
-   Counts_model<-readRDS(gzcon(url('https://git.io/vXuqH')))
+   if (Use_local_data) {
+      Counts_model<-readRDS('./results/Mauritania_counts_model.RDS')
+   } else {
+      Counts_model<-readRDS(gzcon(url('https://git.io/vXuqH')))
+   }
 }
 ```
 ### 5.5 Plot model results for Panel C at Fig.1
@@ -785,25 +833,35 @@ dev.off()
 ## 6. Phenology plot (Fig. 1a)
 ### 6.1 Load data
 ```{r}
-# read Snow
-Snow<-read.csv('https://git.io/vXu3V', as.is=TRUE)
+if (Use_local_data) {
+   # read Snow
+   Snow<-read.csv('./results/snow50.csv', as.is=TRUE)
+   # read breeding data
+   Nests<-read.csv('./data/Nests.csv', as.is=TRUE)
+   # read crane flies
+   Tipula<-read.csv('./data/Tipula.csv', as.is=TRUE)
+   # read arrivals to Khatanga
+   Arrivals_Khat<-read.csv('./data/Arrivals_Khat.csv', as.is=TRUE)
+   # read arrivals to Wadden Sea (predicted by arrival model)
+   Arr_Wadden<-read.csv('./results/Arrivals_migration_model.csv')
+} else {
+   # read Snow
+   Snow<-read.csv('https://git.io/vXu3V', as.is=TRUE)
+   # read breeding data
+   Nests<-read.csv('https://git.io/vXu3y', as.is=TRUE)
+   # read crane flies
+   Tipula<-read.csv('https://git.io/vXu3x', as.is=TRUE)
+   # read arrivals to Khatanga
+   Arrivals_Khat<-read.csv('https://git.io/vXusf', as.is=TRUE)
+   # read arrivals to Wadden Sea (predicted by arrival model)
+   Arr_Wadden<-read.csv('https://git.io/vXED0')
+}
+
 names(Snow)<-c('Yr', 'Date', 'yday')
 Snow$Date<-as.Date(Snow$Date, tz='GMT')
-
-# read breeding data
-Nests<-read.csv('https://git.io/vXu3y', as.is=TRUE)
 Nests$Date<-as.Date(Nests$Date, tz='GMT', format='%Y-%m-%d' )
-
-# read crane flies
-Tipula<-read.csv('https://git.io/vXu3x', as.is=TRUE)
 Tipula$Date<-as.Date(Tipula$Date, tz='GMT', format='%Y-%m-%d' )
-
-# read arrivals to Khatanga
-Arrivals_Khat<-read.csv('https://git.io/vXusf', as.is=TRUE)
 Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
-
-# read arrivals to Wadden Sea (predicted by arrival model)
-Arr_Wadden<-read.csv('https://git.io/vXED0')
 names(Arr_Wadden)[2]<-'yday'
 ```
 ### 6.2 Estimate linear slopes of phenological events in time
