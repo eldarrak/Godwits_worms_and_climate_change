@@ -87,9 +87,9 @@ if (Run_everything) {
          out[ind,2] <- extract(tmp3, area, mean, na.rm=TRUE)
         }
    }
-   #save(out, file = "snow.RData")
+   saveRDS(out, file = "snow.RDS")
 } else {
-   load(url("https://git.io/vXEnX"))
+   out<-readRDS(gzcon(url("https://git.io/vXgZb")))
 }
 ```
 ### 1.5 Extract first date of 50% snow melt
@@ -193,9 +193,9 @@ if (Run_everything) {
                   n.burnin = 200, 
                   working.directory = getwd())
    print(migration_model)
-   save(migration_model, file="migration_model.RData")
+   saveRDS(migration_model, file="migration_model.RDS")
 } else {
-load(url('https://git.io/vXE0v'))
+migration_model<-readRDS(gzcon(url('https://git.io/vXgZG')))
 }
 ```
 ### 2.5 Look at the output
