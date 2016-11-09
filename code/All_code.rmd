@@ -1,11 +1,27 @@
 # Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird
 -----
 **_Eldar Rakhimberdiev_**
-
+## 0. Set up output and run options
+## 0.1 To run or to load?
+Parts of this code take time to run, so if you want to go through examples fast and do not want to install all the software
+```{r}
+Run_everything=FALSE # Change to TRUE if you want run everything by your computer
+```
+## 0.2 Online or local data?
+This script can operate online or local data. If `Use_local_data` set to TRUE working directory expected to have folders `data`, `results`.
+```{r}
+Use_local_data=FALSE # Change to TRUE if you want to use local data
+if (Use_local_data) {
+   if (!'results' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('results direcotry not found!')
+   if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data direcotry not found!')
+}
+```
+## 0.3 Plot on screen or save plots as pdfs?
 Parts of this code take time to run, so if you want to go through examples fast you can specify
 ```{r}
-Run_everything=FALSE # Change it to TRUE if you want run everything on you system
+save_pdf=FALSE # Change to TRUE if you want to save pdf of figures.
 ```
+
 ## 1. Reconstruction of snow melt from remote sensing data
 We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _limosa lapponica taimyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
 ### 1.1 Download publically available data
