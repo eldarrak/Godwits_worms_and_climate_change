@@ -853,7 +853,7 @@ if (Use_local_data) {
    # read arrivals to Wadden Sea (predicted by arrival model)
    Arr_Wadden<-read.csv('https://git.io/vXED0')   
    Lugworms<-read.csv('https://git.io/vXESR')
-   Estimates_females<-read.csv(file='https://git.io/vXgI8')
+   Estimates_females<-read.csv(file='https://git.io/vXgvd')
 }
 ```
 ### 7.2 Prepare data
@@ -865,7 +865,7 @@ if (Use_local_data) {
    Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
    Stayovers$time_scales<-abs(1-(Stayovers$Yr-(min(Stayovers$Yr)-1))/
                              (max((Stayovers$Yr-(min(Stayovers$Yr)-1))+1)))
-   names(Lugworms)[1]<-'Yr'
+   #names(Lugworms)[1]<-'Yr'
    Stayovers<-merge(Stayovers, Lugworms)
 
 ```
@@ -881,14 +881,10 @@ a<-sapply(x, FUN=function(x) quantile(x*13.2/(fuelling_model$BUGSoutput$sims.lis
 XY$Female_Median_Slope<-a[2,]
 XY$Female_lcl_Slope<-a[1,]
 XY$Female_ucl_Slope<-a[3,]
-b<-sapply(x, FUN=function(x) quantile(x*11/(fuelling_model$BUGSoutput$sims.list$K_sat_m + x),
-                             probs =c(0.025, 0.5, 0.975)))
-
 ```
 Estimate weight gain from slopes and stayovers
 ```{r}
 XY$Slope_Weight_gain_Females<-XY$Female_Median_Slope * XY$stayover
-XY$Slope_Weight_gain_Males<-XY$Male_Median_Slope * XY$stayover
 XY$Phi_females<-approx(x=Estimates_females$Female_weight_cov,
                        y = Estimates_females$estimate, XY$Slope_Weight_gain_Females)$y
 
