@@ -1,13 +1,12 @@
 # Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird
------
 **_Eldar Rakhimberdiev_**
 ## 0. Set up output and run options
-## 0.1 To run or to load?
+##№ 0.1 To run or to load?
 Parts of this code take time to run, so if you want to go through examples fast and do not want to install all the software
 ```{r}
 Run_everything=FALSE # Change to TRUE if you want run everything by your computer
 ```
-## 0.2 Online or local data?
+### 0.2 Online or local data?
 This script can operate online or local data. If `Use_local_data` set to TRUE working directory expected to have folders `data`, `results`.
 ```{r}
 Use_local_data=FALSE # Change to TRUE if you want to use local data
@@ -16,10 +15,10 @@ if (Use_local_data) {
    if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data direcotry not found!')
 }
 ```
-## 0.3 Plot on screen or save plots as pdfs?
+### 0.3 Plot on screen or save plots as pdfs?
 Parts of this code take time to run, so if you want to go through examples fast you can specify
 ```{r}
-save_pdf=FALSE # Change to TRUE if you want to save pdf of figures.
+Save_pdf=FALSE # Change to TRUE if you want to save pdf of figures.
 ```
 
 ## 1. Reconstruction of snow melt from remote sensing data
@@ -935,9 +934,102 @@ box()
 dev.off()
 ```
 ## 7. Stayover duration - lugworms - godwit survival (Fig. 2)
+### 7.1 Load data
 ```{r}
+if (Use_local_data) {
+   fuelling_model<-readRDS('./results/fuelling_model.RDS')
+   Estimates_females<-read.csv(file='./results/female_survival_prediction.csv')
+   # read arrivals to Wadden Sea (predicted by arrival model)
+   Arr_Wadden<-read.csv(file='./results/Arrivals_migration_model.csv')   
+   Lugworms<-read.csv('.data/Lugworms.csv')
+} else {
+   fuelling_model<-readRDS(gzcon(url('https://git.io/vXgvv')))
+   Estimates_females<-read.csv(file='https://git.io/vXgvd')
+   # read arrivals to Wadden Sea (predicted by arrival model)
+   Arr_Wadden<-read.csv('https://git.io/vXED0')   
+   Lugworms<-read.csv('https://git.io/vXESR')
+}
+```
+7.2 Prepare data
+```
+   Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
+   Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
+   names(Arr_Wadden)[2]<-'yday'
+   Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
+   Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
+   Stayovers$time_scales<-abs(1-(Stayovers$Yr-(min(Stayovers$Yr)-1))/
+                             (max((Stayovers$Yr-(min(Stayovers$Yr)-1))+1)))
+   names(Lugworms)[1]<-'Yr'
+   Stayovers<-merge(Stayovers, Lugworms)
 
 ```
+Create grid for prediction
+```{r}
+XY<-expand.grid(  Lugworm_density=seq(5,33, 0.1), stayover=seq(17,37, 0.1))
+```
+now for every of these points I get estimate of fueling slope, that I will combine with the stayover
+```{r}
+x=XY[,1]
+a<-sapply(x, FUN=function(x) quantile(x*13.2/(fuelling_model$BUGSoutput$sims.list$K_sat_f + x),
+                             probs =c(0.025, 0.5, 0.975)))
+XY$Female_Median_Slope<-a[2,]
+XY$Female_lcl_Slope<-a[1,]
+XY$Female_ucl_Slope<-a[3,]
+b<-sapply(x, FUN=function(x) quantile(x*11/(fuelling_model$BUGSoutput$sims.list$K_sat_m + x),
+                             probs =c(0.025, 0.5, 0.975)))
+XY$Male_Median_Slope<-b[2,]
+XY$Male_lcl_Slope<-b[1,]
+XY$Male_ucl_Slope<-b[3,]
+```
+Now estimate weight gain from slopes and stayovers
+```{r}
+XY$Slope_Weight_gain_Females<-XY$Female_Median_Slope * XY$stayover
+XY$Slope_Weight_gain_Males<-XY$Male_Median_Slope * XY$stayover
+```
+### 7.3 Plot 
+```{r}
+pdf(file='Figure 2_4 graphs_07_Nov_2016.pdf', useDingbats=FALSE, width=10, height=10)
+par(mfrow=c(2,2))
+
+par(mar=c(3, 6,4,1 ))
+# set up colors
+Late_color<-'#CD6632'
+Early_color<-'#6FC067'
+#-------------------------------------------------------------
+# plot with years and stayover duration
+plot(Stayovers$Stayover~Stayovers$Yr, type='n', ylim=c(17, 37),  ylab='', las=1, xlim=c(1993, 2016), xlab='', cex=1.5, axes=F, yaxs='i')
+axis(1, cex.axis=1.5)
+
+par(xpd=TRUE)
+mtext(side=1, 'Year', line=3, cex=1.5)
+par(xpd=FALSE)
+
+axis(4, labels=FALSE)
+mtext(side=2, 'fuelling time (days)', line=1,cex=1.5,)
+abline(lm(Stayover~Yr, data=Stayovers), lwd=2)
+
+MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
+My_colors<-MyColor_palette(100)
+
+#Horizontal lines with specific colors
+abline(h=predict(lm(Stayover~Yr, data=Stayovers), newdata=data.frame(Yr=c(2015))), lwd=2, col=Late_color)
+abline(v=2015, lwd=2, col=Late_color)
+
+abline(h=predict(lm(Stayover~Yr, data=Stayovers), newdata=data.frame(Yr=c(1995))), lwd=2, col=Early_color)
+abline(v=1995, lwd=2, col=Early_color)
+# 
+# 
+for (i in 1:nrow(Stayovers)) {
+points(Stayover~Yr, data=Stayovers[i,], pch=21, cex=4, bg=My_colors[round(Stayovers[i,]$time_scales*100)], lwd=2)
+text(Stayover~Yr, data=Stayovers[i,], labels = substr(Yr,3,4))
+}
+box()
+abline(h=c(17, 37))
+
+
+
+```
+
 ## References
 
 1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
