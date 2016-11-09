@@ -11,8 +11,8 @@ This script can operate online or local data. If `Use_local_data` set to TRUE wo
 ```{r}
 Use_local_data=FALSE # Change to TRUE if you want to use local data
 if (Use_local_data) {
-   if (!'results' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('results direcotry not found!')
-   if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data direcotry not found!')
+   if (!'results' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('results directory not found!')
+   if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data directory not found!')
 }
 ```
 ### 0.3 Plot on screen or save plots as pdfs?
@@ -985,7 +985,8 @@ Estimate weight gain from slopes and stayovers
 ```{r}
 XY$Slope_Weight_gain_Females<-XY$Female_Median_Slope * XY$stayover
 XY$Slope_Weight_gain_Males<-XY$Male_Median_Slope * XY$stayover
-XY$Phi_females<-approx(x=Estimates_females$Female_weight_cov, y = Estimates_females$estimate, XY$Slope_Weight_gain_Females)$y
+XY$Phi_females<-approx(x=Estimates_females$Female_weight_cov,
+                       y = Estimates_females$estimate, XY$Slope_Weight_gain_Females)$y
 
 ```
 ### 7.3. Prepare plot
