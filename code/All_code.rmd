@@ -1,9 +1,13 @@
-# Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird
+﻿# Supplementary co code to 'Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird' by Rakhimberideb et al. to be submitted
 
-_Eldar Rakhimberdiev_
+_author Eldar Rakhimberdiev_
+
+You might enjoy [html version of this supplementary](http://htmlpreview.github.io/?https://github.com/eldarrak/Godwits_worms_and_climate_change/blob/master/code/All_code.html?raw=true).
 
 ## 0. Set up output and run options
-
+```{r}
+set.seed(123)
+```
 ### 0.1 To run or to load?
 Parts of this code take time to run, so if you want to go through examples fast and do not want to install all the software
 ```{r}
@@ -144,7 +148,7 @@ if (Use_local_data) {
 ```
 
 ### 2.2 Formulate model in JAGS language
-```{r}
+```{r results='hide'}
 sink("migration_model.jags") 
 cat("
 model {
@@ -227,7 +231,7 @@ if (Run_everything) {
 ```
 
 ### 2.5 Look at the output
-```{r}
+```{r results='hide'}
 print(migration_model)
 Arrivals<-data.frame(Yr=unique(sites_years_dates$Year), 
                      arrival=migration_model$BUGSoutput$mean$T_0k,
@@ -297,7 +301,7 @@ Lugworms_vec<-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]
 
 ```
 ### 3.3 Formulate model
-```{r}
+```{r results='hide'}
 sink("fuelling_model.jags")
 
 cat("
@@ -381,7 +385,7 @@ if (Run_everything) {
 ```
 
 ### 3.6 Explore and save model results
-```{r}
+```{r results='hide'}
 print(fuelling_model)
 Years<-unique(as.numeric((Data_to_model$Yr)))
 # save estimated slopes for survival model
@@ -573,7 +577,7 @@ if (Run_everything) {
 
 ### 4.4 median c-hat test in MARK
 We now have to estimate potential overdispersion and correct for it. This possibility currently does not exist in RMark, so we export data to MARK and do test there. 
-```{r}
+```{r results='hide'}
 export.MARK(Godwit.data, 'godwit_data', Res, replace=TRUE)
 ```
 >Estimated c-hat = 1.1445372 with sampling SE = 0.0037387
@@ -691,7 +695,7 @@ for (i in 1:nrow(Counts)) {
 ```
 
 ### 5.2 Formulate model
-```{r}
+```{r results='hide'}
 sink("winter_counts_model.jags")
 cat(" 
 model {
@@ -753,7 +757,7 @@ if (Run_everything) {
 ```
 
 ### 5.5 Plot model results for Panel C at Fig.1
-```{r fig.width=5, fig.height=5}
+```{r fig.width=5, fig.height=5, results='hide'}
 print(Counts_model)
 if (Save_pdf) pdf("Mauritania_counts.pdf", 5, 5)
 Predicted_densities<-as.data.frame(cbind(Years, 
@@ -1036,13 +1040,21 @@ if (Save_pdf) dev.off()
 
 ## References
 
-1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922–2010 including an assessment of uncertainty. The Cryosphere 5, 219–229 (2011).<a id="brown-robinson"></a>
+1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922-2010 including an assessment of uncertainty. The Cryosphere 5, 219-229 (2011).<a id="brown-robinson"></a>
 1. Lappo, E., Tomkovich, P. & Syroechkovskiy, E. Atlas of breeding waders in the Russian Arctic. (2012).<a id="lappo"></a>
-1. van Gils, J. A. et al. Body shrinkage due to Arctic warming reduces red knot fitness in tropical wintering range. Science 352, 819–821 (2016).<a id="van-gils"></a>
-1. Lindén, A. & Mäntyniemi, S. Using the negative binomial distribution to model overdispersion in ecological count data. Ecology 92, 1414–1421 (2011).<a id="lindén-mäntyniemi"></a>
+1. van Gils, J. A. et al. Body shrinkage due to Arctic warming reduces red knot fitness in tropical wintering range. Science 352, 819-821 (2016).<a id="van-gils"></a>
+1. Lindén, A. & Mäntyniemi, S. Using the negative binomial distribution to model overdispersion in ecological count data. Ecology 92, 1414-1421 (2011).<a id="lindén-mäntyniemi"></a>
 1. Plummer, M. JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling. (2003).<a id="plummer"></a>
-1. Su, Y.-S. & Masanao Yajima. R2jags: Using R to Run ‘JAGS’. (2015).<a id="su-yahima"></a>
-1. Lebreton, J.-D., Burnham, K. P., Clobert, J. & Anderson, D. R. Modeling survival and testing biological hypotheses using marked animals: a unified approach with case studies. Ecol. Monogr. 62, 67–118 (1992).<a id="lebreton"></a>
-1. White, G. C. & Burnham, K. P. Program MARK: survival estimation from populations of marked animals. Bird Study 46, S120–S139 (1999).<a id="white"></a>
+1. Su, Y.-S. & Masanao Yajima. R2jags: Using R to Run 'JAGS'. (2015).<a id="su-yahima"></a>
+1. Lebreton, J.-D., Burnham, K. P., Clobert, J. & Anderson, D. R. Modeling survival and testing biological hypotheses using marked animals: a unified approach with case studies. Ecol. Monogr. 62, 67-118 (1992).<a id="lebreton"></a>
+1. White, G. C. & Burnham, K. P. Program MARK: survival estimation from populations of marked animals. Bird Study 46, S120-S139 (1999).<a id="white"></a>
 1. Laake, J. L. RMark: An R interface for analysis of capture-recapture data with MARK. 25 (Alaska Fish. Sci. Cent., NOAA, Natl. Mar. Fish. Serv., 2013).<a id="laake"></a>
 1. Kéry, M. & Schaub, M. Bayesian population analysis using WinBUGS a hierarchical perspective. (Academic Press, 2012).<a id="kery-schaub"></a>
+
+The html file from this markdown can be recereated with folloing code
+```{r eval=FALSE}
+download.file('https://git.io/vXaM6', 'tmp.rmd')
+render('tmp.rmd', output_format = 'html_document',
+        output_options=list(toc=TRUE, toc_float=list(collapsed=FALSE)), 
+		encoding='utf-8')
+```
