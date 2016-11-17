@@ -1054,7 +1054,7 @@ if (Save_pdf) dev.off()
 P.S. The html file from this markdown can be recereated with folloing code
 ```{r eval=FALSE}
 download.file('https://git.io/vXaM6', 'tmp.rmd')
-roxygen::render('tmp.rmd', output_format = 'html_document',
+rmarkdown::render('tmp.rmd', output_format = 'html_document',
         output_options=list(toc=TRUE, toc_float=list(collapsed=FALSE)), 
 		encoding='utf-8')
 ```
