@@ -1051,7 +1051,7 @@ if (Save_pdf) dev.off()
 1. Laake, J. L. RMark: An R interface for analysis of capture-recapture data with MARK. 25 (Alaska Fish. Sci. Cent., NOAA, Natl. Mar. Fish. Serv., 2013).<a id="laake"></a>
 1. Kéry, M. & Schaub, M. Bayesian population analysis using WinBUGS a hierarchical perspective. (Academic Press, 2012).<a id="kery-schaub"></a>
 
-The html file from this markdown can be recereated with folloing code
+P.S. The html file from this markdown can be recereated with folloing code
 ```{r eval=FALSE}
 download.file('https://git.io/vXaM6', 'tmp.rmd')
 render('tmp.rmd', output_format = 'html_document',
