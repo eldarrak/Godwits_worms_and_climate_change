@@ -1,6 +1,6 @@
-﻿# Supplementary co code to 'Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird' by Rakhimberideb et al. to be submitted
+﻿# Supplementary to code to 'Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird' by Rakhimberidev et al. to be submitted
 
-_author Eldar Rakhimberdiev_
+_code by Eldar Rakhimberdiev_
 
 You might enjoy [html version of this supplementary](http://htmlpreview.github.io/?https://github.com/eldarrak/Godwits_worms_and_climate_change/blob/master/code/All_code.html?raw=true).
 
@@ -30,11 +30,11 @@ Parts of this code take time to run, so if you want to go through examples fast 
 Save_pdf=FALSE # Change to TRUE if you want to save pdf of figures.
 ```
 
-## 1. Reconstruction of snow melt from remote sensing data
-We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _limosa lapponica taimyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
+## 1. Reconstruction of snowmelt from remote sensing data
+We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _Limosa lapponica taimyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
 
 ### 1.1 Download publically available data
-load required packages
+Load required packages
 ```{r}
 library(ncdf4)
 library(raster)
@@ -110,7 +110,7 @@ if (Run_everything) {
 }
 ```
 
-### 1.5 Extract first date of 50% snow melt
+### 1.5 Extract first date of 50% snowmelt
 ```{r}
 out$zz<-out$Z-0.5
 plot(Z~Date, data=subset(out, !is.na(Z)), type='l')
@@ -135,7 +135,7 @@ write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
 
 ## 2. Arrival dates from citizen science data
 We used data from citizen science project www.trektellen.nl and modelled them with approach similar to one used in Lindén & Mäntyniemi ([2011](#lindén-mäntyniemi)). Model was estimated with JAGS sampler ([Plummer 2003](#plummer)) via R2jags ([Su & Yahima 2015](#su-yahima)) interface from R.
-_TO run code from this chapter you need to install JAGS software_
+_To run code from this chapter you need to install JAGS software._
 
 ### 2.1 Load packages and data
 ```{r}
@@ -183,7 +183,7 @@ model {
 sink()
 ```
 
-### 2.3 Prepare data and inits
+### 2.3 Prepare data and initial values
 ```{r}
 Data<-list('nObs'=nrow(sites_years_dates),
            'nYears'=length(unique(sites_years_dates$Year)),
@@ -239,7 +239,7 @@ Arrivals<-data.frame(Yr=unique(sites_years_dates$Year),
 write.csv(Arrivals, file="Arrivals_migration_model.csv", row.names=F)
 ```
 
-## 3 Fuelling rates and their relationship with lugworm abundance
+## 3. Fuelling rates and their relationship with lugworm abundance
 
 ### 3.1 Estimate yearly arrival weights from Castricum data
 ```{r}
@@ -277,7 +277,7 @@ Arrival_weights<-data.frame(Yr=as.numeric(levels(aggr_data_females$fYr)),
 write.csv(Arrival_weights, file='Arrival_weights.csv', row.names=FALSE)
 ```
 
-### 3.2 load packages and data
+### 3.2 Load packages and data
 Here we load **arrival time** estimated in 2.5 data on lugworm densities in the Dutch Wadden Sea.
 ```{r}
 library(R2jags)
@@ -347,7 +347,7 @@ cat("
 sink()
 ```
 
-### 3.4 Prepare data and inits
+### 3.4 Prepare data and initial values
 ```{r}
 Data=list(Wt=Data_to_model$Mass, Time=Data_to_model$yday,
           i2k=as.numeric(as.factor(Data_to_model$Yr)),
@@ -575,7 +575,7 @@ if (Run_everything) {
 }
 ```
 
-### 4.4 median c-hat test in MARK
+### 4.4 Median c-hat test in MARK
 We now have to estimate potential overdispersion and correct for it. This possibility currently does not exist in RMark, so we export data to MARK and do test there. 
 ```{r results='hide'}
 export.MARK(Godwit.data, 'godwit_data', Res, replace=TRUE)
@@ -675,7 +675,7 @@ lines(lcl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
 if (Save_pdf) dev.off()
 ```
 
-## 5 Population trends from winter counts in Mauritania
+## 5. Population trends from winter counts in Mauritania
 We modelled change in total population of godwits in state space modelled suggested by Kéry & Shcaub ([2012](#kery-schaub)), but with negative binomial error distribution.
 
 ### 5.1 Load packages and data
@@ -724,7 +724,7 @@ model {
 sink()
 ```
 
-### 5.3 Priors and inits
+### 5.3 Priors and initial values
 ```{r}
 exp.mean<-mean(as.double(y.matrix),na.rm=T)
 exp.lam <-1/exp.mean
@@ -756,7 +756,7 @@ if (Run_everything) {
 }
 ```
 
-### 5.5 Plot model results for Panel C at Fig.1
+### 5.5 Plot model results for panel C in Fig.1
 ```{r fig.width=5, fig.height=5, results='hide'}
 print(Counts_model)
 if (Save_pdf) pdf("Mauritania_counts.pdf", 5, 5)
@@ -823,7 +823,7 @@ summary(lm(yday~Yr, data=Arr_Wadden))
 ```{r fig.width=5, fig.height=10}
 if (Save_pdf) pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
 par(mar=c(4,4,2,6))
-# snow melt
+# snowmelt
 plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2015),axes=FALSE, ylab='')
 axis(1)
 box()
