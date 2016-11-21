@@ -121,10 +121,9 @@ Res<-c()
 Res<-as.data.frame(Res)
 names(Res)<-c('Yr', 'jdate50', 'jdate50_south')   
 write.csv(Res, file='Snow_remote.csv', row.names=FALSE)
-   
+
 plot(jdate50~Yr, data=Res, pch=19, col=Colors[2], ylim=range(c(Res[,2], Res[,3])), las=1, xlab='Year', cex=2)
 summary(lm(jdate50~Yr, data=subset(Res, Yr>1995)))
-write.csv(Snow50, file='Snow_remote.csv', row.names=FALSE)
 ```
 
 ### 1.6 Comparison of remote sensing data with ground observations
@@ -797,7 +796,7 @@ if (Save_pdf) dev.off()
 ```{r}
 if (Use_local_data) {
    # read Snow
-   Snow<-read.csv('./results/snow50.csv', as.is=TRUE)
+   Snow<-read.csv('./results/Snow_remote.csv', as.is=TRUE)
    # read breeding data
    Nests<-read.csv('./data/Nests.csv', as.is=TRUE)
    # read crane flies
@@ -808,7 +807,7 @@ if (Use_local_data) {
    Arr_Wadden<-read.csv('./results/Arrivals_migration_model.csv')
 } else {
    # read Snow
-   Snow<-read.csv('https://git.io/vXu3V', as.is=TRUE)
+   Snow<-read.csv('https://git.io/vXAZ1', as.is=TRUE)
    # read breeding data
    Nests<-read.csv('https://git.io/vXu3y', as.is=TRUE)
    # read crane flies
@@ -819,8 +818,7 @@ if (Use_local_data) {
    Arr_Wadden<-read.csv('https://git.io/vXED0')
 }
 
-names(Snow)<-c('Yr', 'Date', 'yday')
-Snow$Date<-as.Date(Snow$Date, tz='GMT')
+names(Snow)<-c('Yr', 'yday', 'yday_South')
 Nests$Date<-as.Date(Nests$Date, tz='GMT', format='%Y-%m-%d' )
 Tipula$Date<-as.Date(Tipula$Date, tz='GMT', format='%Y-%m-%d' )
 Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
