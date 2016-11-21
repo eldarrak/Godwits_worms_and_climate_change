@@ -415,9 +415,9 @@ XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
 Y_m<- t(sapply(XX, FUN=function(x) 
               quantile(x*11 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_m),
 	      probs=c(0.025, 0.5,0.975))))
-lines(Y_m[,1]~XX, lty=2)
+lines(Y_m[,1]~XX, lwd=2, lty=1)
 lines(Y_m[,2]~XX, lwd=2)
-lines(Y_m[,3]~XX, lty=2)
+lines(Y_m[,3]~XX, lwd=2, lty=1)
 for (i in 1:length(Lugworms_vec)) {
    points(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i],
    pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
@@ -434,9 +434,9 @@ XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
 Y_fem<- t(sapply(XX, FUN=function(x)
                  quantile(x*13.2 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_f),
 		 probs=c(0.025, 0.5,0.975))))
-lines(Y_fem[,1]~XX, lty=1)
+lines(Y_fem[,1]~XX, lwd=2, lty=1)
 lines(Y_fem[,2]~XX, lwd=2)
-lines(Y_fem[,3]~XX, lty=1)
+lines(Y_fem[,3]~XX, lwd=2, lty=1)
 for (i in 1:length(Lugworms_vec)) {
    points(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i],
    pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
@@ -649,11 +649,11 @@ lines(estimate~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
 lines(ucl~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
      min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad']) &
      Male_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad'])), lwd=1)
+     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad'])), lwd=2, lty=2)
 lines(lcl~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
      min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad']) &
      Male_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad'])), lty=1, lwd=1)
+     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad'])), lwd=2, lty=2)
 
 #  Females
 plot(estimate~Female_weight_cov, data=Estimates_females,  ylim=c(0.8, 0.95),
@@ -667,11 +667,11 @@ lines(estimate~Female_weight_cov, data=subset(Estimates_females, Female_weight_c
 lines(ucl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
      min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']) &
      Female_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])) , lwd=1)
+     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])) , lwd=2, lty=2)
 lines(lcl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
      min(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']) &
      Female_weight_cov<=
-     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])), lty=1, lwd=1)
+     max(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad'])),lwd=2, lty=2)
 if (Save_pdf) dev.off()
 ```
 
