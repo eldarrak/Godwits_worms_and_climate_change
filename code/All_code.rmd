@@ -40,6 +40,7 @@ library(ncdf4)
 library(raster)
 library(rgdal)
 library(maptools)
+library(maps)
 ```
 Download taimyrensis bar-trailed godwit [(_Limosa lapponica taimyrensis_) range](#lappo) from this GitHub repo
 ```{r}
@@ -65,7 +66,7 @@ lat <- raster(ylat)
 snow <- brick(z)
 
 start <- as.POSIXct("1966-10-03", "GMT")
-  date <- start + ((t-6)*24*60*60)
+date <- start + ((t-6)*24*60*60)
 ```
 
 ### 1.3 Projection
@@ -73,64 +74,80 @@ start <- as.POSIXct("1966-10-03", "GMT")
 projSnow <- "+proj=stere +lat_0=90 +lon_0=10"
 xy <- project(cbind(values(lon), values(lat)), projSnow)
 area <- spTransform(area.longlat, CRS(projSnow))
+Grid_centers<-SpatialPoints(xy, proj4string=CRS(projSnow))
+Grid_centers_lon_lat<-spTransform(Grid_centers, CRS=CRS(proj4string(area.longlat)))
 ```
 
-### 1.4 Rasterize
+### 1.4 Select and plot snow points
 ```{r}
-r <- raster(xmn = min(xy[,1]), xmx = max(xy[,1]), ymn = min(xy[,2]),
-            ymx = max(xy[,2]), nrow=88, ncol=88)
-tmp <- rasterize(xy, y = r, field = values(snow[[1]]))
-plot(tmp)
-data(wrld_simpl)
-wrld <- spTransform(subset(wrld_simpl, NAME != "Antarctica"), CRS(projSnow))
-plot(as(wrld, "SpatialLines"), add = TRUE, col = "red")
+# select snow points within godwtis's area
+Selected_Points<-which(!is.na(over(Grid_centers, area)))
+# Ok now we want to take two points closest to the field site
+Field_site<-cbind(106.0,72.8)
+Selected_Points_near_field_station<-Selected_Points[sort(order(spDists(coordinates(Grid_centers_lon_lat[Selected_Points,]), Field_site, longlat=TRUE))[1:2])]
 
-out <- data.frame(Date = date, Z = NA)
-if (Run_everything) {
-   # following loop takes ~ 20 minutes brt
-   for(i in 1982:2016) {
-      cat(round(i/length(names(snow)),4), "%   ", "\r")
-      for(w in 1:length(date[as.numeric(format(date, "%Y"))==i])) {
-         ind <- which(as.numeric(format(date, "%Y"))==i)[w]  
-         tmp1 <- rasterize(xy, y = tmp, field = values(snow[[ind]]))
-         tmp2 <- crop(tmp1, area) 
-         tmp3 <- resample(tmp2, 
-                      raster(extent(tmp2), ncol = 6, nrow = 12),
-                      method = "ngb")
-         out[ind,2] <- extract(tmp3, area, mean, na.rm=TRUE)
-        }
-   }
-   saveRDS(out, file = "./results/snow.RDS")
-} else {
-   if (Use_local_data) {
-      out<-readRDS('./results/snow.RDS')
-   } else {
-      out<-readRDS(gzcon(url("https://git.io/vXgZb")))
-   }
-}
+# Plot
+Colors<-c('#1b9e77', '#d95f02', '#7570b3')
+plot(area.longlat)
+map('world', add=T, col=grey(0.9), fill=TRUE )
+map('world', add=T, col=grey(0.5), lwd=2)
+plot(area.longlat, border=grey(0.3),  lwd=2, add=T, col='#bae4bc')
+# plot all snow grid points around
+plot(Grid_centers_lon_lat, col=Colors[1], add=TRUE, pch=19, cex=2) 
+# plot snow grid points withing godwits range
+plot(Grid_centers_lon_lat[Selected_Points,], col=Colors[2], pch=19, cex=2, add=TRUE)
+# field site
+points(Field_site[1],Field_site[2], pch=17, cex=2, col=2)
+# two closes points to the field site
+plot(Grid_centers_lon_lat[Selected_Points_near_field_station,], col=Colors[3], pch=19, cex=2, add=TRUE)
 ```
 
 ### 1.5 Extract first date of 50% snowmelt
 ```{r}
-out$zz<-out$Z-0.5
-plot(Z~Date, data=subset(out, !is.na(Z)), type='l')
-Index<-which(out$zz[-1]*out$zz[-length(out$zz)]<=0 & out$zz[-length(out$zz)]>=0)
-Years_tmp<-unique(as.numeric(format(out$Date[Index], '%Y')))
-#dates with last measurement
-Dates_last<-as.POSIXct(sapply(Years_tmp, FUN=function(x) 
-            out$Date[Index][as.numeric(format(out$Date[Index], "%Y")) == x ] [1]), origin='1970-01-01')
-Index_last<-sapply(Years_tmp, FUN=function(x) 
-            Index[as.numeric(format(out$Date[Index], "%Y")) == x ] [1])
-Weight_second<-(out$Z[Index_last]-0.5)/(out$Z[Index_last] - out$Z[Index_last+1])
-Weight_first<-1-Weight_second
-Weighted_dates<-as.POSIXct(as.numeric(out$Date[Index_last])*Weight_first +
-                as.numeric(out$Date[Index_last+1])*Weight_second, origin='1970-01-01')
-Res<-data.frame(Year=Years_tmp, Date50=Weighted_dates)
-Res$jdate50<-as.numeric(format(Res$Date50, '%j'))
-plot(jdate50~Year, data=subset(Res))
-summary(lm(jdate50~Year, data=subset(Res, Year>1995)))
-Snow50<-Res
-write.csv(Snow50, file='Snow50.RData', row.names=FALSE)
+Res<-c()
+   for(i in 1982:2016) {
+        ind <- which(as.numeric(format(date, "%Y"))==i &
+	               as.numeric(format(as.POSIXct(date), format='%m'))<8) 
+        M<-snow@data@values[Selected_Points,ind]
+        M_Southern<-snow@data@values[Selected_Points_near_field_station,ind]
+	    # we now want to get last point with non zero snow coverage
+		Mean_all<-mean(as.numeric(format(c(date[ind][
+		               apply(M, 1, FUN=function(x) which(x==0)[1])-1]), '%j')))
+		Mean_Southern<-mean(as.numeric(format(date[ind][
+		               apply(M_Southern, 1, FUN=function(x) which(x==0)[1])-1], '%j')))
+		Res<-rbind(Res, cbind(i, Mean_all, Mean_Southern))
+   }
+
+Res<-as.data.frame(Res)
+names(Res)<-c('Yr', 'jdate50', 'jdate50_south')   
+write.csv(Res, file='Snow_remote.csv', row.names=FALSE)
+   
+plot(jdate50~Yr, data=Res, pch=19, col=Colors[2], ylim=range(c(Res[,2], Res[,3])), las=1, xlab='Year', cex=2)
+summary(lm(jdate50~Yr, data=subset(Res, Yr>1995)))
+write.csv(Snow50, file='Snow_remote.csv', row.names=FALSE)
+```
+
+### 1.6 Comparison of remote sensing data with ground observations
+```{r}
+if (Use_local_data) {
+   Snow_remote<-read.csv('./results/Snow_remote.csv')
+   Snow_ground<-read.csv('./data/Snow_ground.csv')
+} else {
+   Snow_remote<-read.csv('https://git.io/vXAZ1')
+   Snow_ground<-read.csv('https://git.io/vXAnO')
+}
+# now we merge them
+Snow_all<-merge(Snow_remote, Snow_ground)
+plot(jdate50_south~ jdate50_ground, data=Snow_all, pch=19, cex=2, col=Colors[3], las=1, xlab='Snow 50% date from ground observations (yday)', ylab='Snow 50% date from remote data (yday)')
+# draw regression line
+abline(a=0, b=1, col=1, lwd=2)
+abline(lm(jdate50_south~ jdate50_ground, data=Snow_all), lwd=2, col=Colors[3])
+# now formally check the regression
+print(summary(lm(jdate50_south~ jdate50_ground, data=Snow_all)))
+# slope does not differ from 1:
+print(summary(lm(I(jdate50_south- jdate50_ground)~jdate50_ground, data=Snow_all)))
+# and Intercept from 0
+print(summary(lm(I(jdate50_south- jdate50_ground)~1, data=Snow_all)))
 ```
 
 ## 2. Arrival dates from citizen science data
