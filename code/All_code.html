@@ -252,7 +252,7 @@ if (Use_local_data) {
 </div>
 <div id="reconstruction-of-snowmelt-from-remote-sensing-data" class="section level2">
 <h2>1. Reconstruction of snowmelt from remote sensing data</h2>
-<p>We used NOAA CDR snow cover extent based on remote sensed data <a href="#brown-robinson">Brown &amp; Robinson 2011</a>. Weekly snow cover data were downloaded on 24×24 km grid and subset by the <em>Limosa lapponica taimyrensis</em> breeding range <a href="#lappo">Lappo et al. 2012</a>. Following code provided in <a href="#van-gils">van Gils et al 2016</a>, we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.</p>
+<p>We used NOAA CDR snow cover extent based on remote sensed data <a href="#brown-robinson">Brown &amp; Robinson 2011</a>. Weekly snow cover data were downloaded on 24×24 km grid and subset by the <em>Limosa lapponica taymyrensis</em> breeding range <a href="#lappo">Lappo et al. 2012</a>. Following code provided in <a href="#van-gils">van Gils et al 2016</a>, we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.</p>
 <div id="download-publically-available-data" class="section level3">
 <h3>1.1 Download publically available data</h3>
 <p>Load required packages</p>
@@ -261,7 +261,7 @@ library(raster)
 library(rgdal)
 library(maptools)
 library(maps)</code></pre>
-<p>Download taimyrensis bar-trailed godwit <a href="#lappo">(<em>Limosa lapponica taimyrensis</em>) range</a> from this GitHub repo</p>
+<p>Download taimyrensis bar-trailed godwit <a href="#lappo">(<em>Limosa lapponica taymyrensis</em>) range</a> from this GitHub repo</p>
 <pre class="r"><code>area.longlat&lt;-readRDS(gzcon(url('https://git.io/vXRBz')))</code></pre>
 <p>Download and read in R all <a href="#brown-robinson">snow data from NOAA</a></p>
 <pre class="r"><code>download.file('ftp://data.ncdc.noaa.gov/cdr/snowcover/nhsce_v01r01_19661004_20160905.nc',
@@ -534,9 +534,8 @@ write.csv(Arrivals, file=&quot;Arrivals_migration_model.csv&quot;, row.names=F)<
 <h2>3. Fuelling rates and their relationship with lugworm abundance</h2>
 <div id="estimate-yearly-arrival-weights-from-castricum-data" class="section level3">
 <h3>3.1 Estimate yearly arrival weights from Castricum data</h3>
-<pre class="r"><code>library(lme4)</code></pre>
-<pre><code>## Loading required package: Matrix</code></pre>
-<pre class="r"><code>if (Use_local_data) {
+<pre class="r"><code>library(lme4)
+if (Use_local_data) {
    Capture_data&lt;-read.csv('./data/Capture_data.csv', as.is=TRUE)
 } else {
    Capture_data&lt;-read.csv(&quot;https://git.io/vXEDL&quot;, as.is=TRUE)
