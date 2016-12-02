@@ -431,9 +431,9 @@ XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
 Y_m<- t(sapply(XX, FUN=function(x) 
               quantile(x*11 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_m),
 	      probs=c(0.025, 0.5,0.975))))
-lines(Y_m[,1]~XX, lwd=2, lty=1)
+lines(Y_m[,1]~XX, lwd=2, lty=2)
 lines(Y_m[,2]~XX, lwd=2)
-lines(Y_m[,3]~XX, lwd=2, lty=1)
+lines(Y_m[,3]~XX, lwd=2, lty=2)
 for (i in 1:length(Lugworms_vec)) {
    points(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i],
    pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
@@ -450,9 +450,9 @@ XX<-seq(min(Lugworms_vec), max(Lugworms_vec), 0.1)
 Y_fem<- t(sapply(XX, FUN=function(x)
                  quantile(x*13.2 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_f),
 		 probs=c(0.025, 0.5,0.975))))
-lines(Y_fem[,1]~XX, lwd=2, lty=1)
+lines(Y_fem[,1]~XX, lwd=2, lty=2)
 lines(Y_fem[,2]~XX, lwd=2)
-lines(Y_fem[,3]~XX, lwd=2, lty=1)
+lines(Y_fem[,3]~XX, lwd=2, lty=2)
 for (i in 1:length(Lugworms_vec)) {
    points(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i],
    pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
@@ -511,7 +511,7 @@ All_staging_data$Departure_fuel_load_males<-All_staging_data$Fuelling_slope_male
                                   (All_staging_data$departure-All_staging_data$arrival)
 All_staging_data$Departure_fuel_load_males_predicted<-All_staging_data$Fuelling_slope_males_predicted*
                                   (All_staging_data$departure-All_staging_data$arrival)
-
+								  
 Departure_Weight_gain_Females<-rbind(
     cbind(group='fCas', subset(All_staging_data,
 	select=c(Yr, Departure_fuel_load_females, Departure_fuel_load_females_predicted))),
@@ -832,6 +832,13 @@ summary(lm(yday~Yr+Region, data=Tipula))
 summary(lm(yday~Yr+Region, data=Nests))
 summary(lm(yday~Yr, data=Arrivals_Khat))
 summary(lm(yday~Yr, data=Arr_Wadden))
+# stayovers
+Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
+Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
+Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
+summary(lm(Stayover~Yr, data=Stayovers))
+# for all twenty years it is going to be
+summary(lm(Stayover~I(Yr/20), data=Stayovers))
 ```
 
 ### 6.3 Plot the figure
@@ -914,6 +921,10 @@ if (Use_local_data) {
    Lugworms<-read.csv('https://git.io/vXESR')
    Estimates_females<-read.csv(file='https://git.io/vXgvd')
 }
+# No trend in lugworms:
+summary(lm(lugworms_ad~Yr, data=subset(Lugworms, Yr>1995)))
+# Average density:
+   summary(lm(lugworms_ad~1, data=subset(Lugworms, Yr>1995)))
 ```
 
 ### 7.2 Prepare data
@@ -1016,7 +1027,7 @@ Females_weight_gain_before<-predict(lm(Stayover~Yr, data=Stayovers), newdata=dat
 Females_average_survival<-approx(x=Estimates_females$Female_weight_cov,
                                  y = Estimates_females$estimate, Females_weight_gain_before)$y
 
-contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=Females_average_survival,
+contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=round(Females_average_survival,2),
         lwd=3, col=grey(0.1), labels=round(Females_average_survival,2), labcex=1)
 contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=c(0.8, 0.85, 0.95), col=grey(0.5), labcex=1)
 
@@ -1048,7 +1059,7 @@ abline(v=mean(Stayovers$lugworms_ad), lwd=2, col=Early_color)
 abline(v=25.1,  lwd=2, col=Late_color)
 box()
 mtext(side=2, 'n Years', line=3, cex=1.5)
-mtext(side=1, 'Lugworm density', line=1, cex=1.5)
+mtext(side=1, expression(paste( plain('Lugworm density (') , frac(plain(' individuals '), plain('meter')^ plain("2")), plain(')'))), line=3, cex=1.5)
 
 if (Save_pdf) dev.off()
 ```
