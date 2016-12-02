@@ -31,7 +31,7 @@ Save_pdf=FALSE # Change to TRUE if you want to save pdf of figures.
 ```
 
 ## 1. Reconstruction of snowmelt from remote sensing data
-We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _Limosa lapponica taimyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
+We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _Limosa lapponica taymyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
 
 ### 1.1 Download publically available data
 Load required packages
@@ -42,7 +42,7 @@ library(rgdal)
 library(maptools)
 library(maps)
 ```
-Download taimyrensis bar-trailed godwit [(_Limosa lapponica taimyrensis_) range](#lappo) from this GitHub repo
+Download taimyrensis bar-trailed godwit [(_Limosa lapponica taymyrensis_) range](#lappo) from this GitHub repo
 ```{r}
 area.longlat<-readRDS(gzcon(url('https://git.io/vXRBz')))
 ```
