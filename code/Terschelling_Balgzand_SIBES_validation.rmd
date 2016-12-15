@@ -1,10 +1,12 @@
 ## Validation of use of Balgzand data on lugworm abundance for inference on _taymyrensis_ Bar-Tailed godwit fuelling rates
 
-_this is internal report authorised by Eldar Rakhimberdiev_
+_internal report by Eldar Rakhimberdiev_
+You can read this document in [html](http://htmlpreview.github.io/?https://github.com/eldarrak/Godwits_worms_and_climate_change/blob/master/code/Terschelling_Balgzand_SIBES_validation.html?raw=true) or [markdown](https://github.com/eldarrak/Godwits_worms_and_climate_change/blob/master/code/Terschelling_Balgzand_SIBES_validation.rmd)
 
-Problem description:
+__Problem description:__
 In the manuscript I wrote and would like to submit I used data on lugworm abundance from Balgzand to correlate it with fuelling rates of taymyrensis godwits. The question raised at the department is whether it is correct as we know that our godwits are not abundant there as they prefer Terschelling coast [Duijns et al. 2009](#duijns_2009).
-Solution:
+
+__Solution:__
 SIBES dataset is the only one that covers Terschelling coast, it also covers Balgzand making it possible to directly compare whether the two areas have correlated in time changes in lugworm abundance. Unfortunately SIBES covers only 2008:2014. 2015 and 2016 sampling years are not yet processed.
 
 ### Download data
@@ -112,8 +114,8 @@ From here I conclude that data on Terchelling and Balgzand are highly correlated
 
 P.S. The html file from this markdown can be recereated with folloing code
 ```{r eval=FALSE}
-download.file('https://git.io/v1SnN', 'tmp.rmd')
-rmarkdown::render('tmp.rmd', output_format = 'html_document',
+download.file('https://git.io/v1SnN', 'Terschelling_Balgzand_SIBES_validation.rmd')
+rmarkdown::render('Terschelling_Balgzand_SIBES_validation.rmd', output_format = 'html_document',
         output_options=list(toc=TRUE, toc_float=list(collapsed=FALSE)), 
 		encoding='utf-8')
 		
