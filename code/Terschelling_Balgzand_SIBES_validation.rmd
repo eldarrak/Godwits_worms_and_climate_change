@@ -70,30 +70,35 @@ Lugworms_ad<-subset(Lugworms, wrm_size==1) # select adult lugworms
 
 ### Combine selected sampling points with lugworm data
 ```{r}
-Balgzand_samples_all<-data.frame(Place='B', sample_id=Balzand_utm@data$sample_id, sampleyear=Balzand_utm@data$sampleyear)
-Terschelling_samples_all<-data.frame(Place='T', sample_id=SpPoints_utm@data$sample_id[Selected_Points[1,]], sampleyear=SpPoints_utm@data$sampleyear[Selected_Points[1,]])
+Balgzand_samples_all<-data.frame(Place='B', sample_id=Balzand_utm@data$sample_id,
+                                 sampleyear=Balzand_utm@data$sampleyear)
+Terschelling_samples_all<-data.frame(Place='T', sample_id=SpPoints_utm@data$sample_id[Selected_Points[1,]],
+                                 sampleyear=SpPoints_utm@data$sampleyear[Selected_Points[1,]])
 All_count_ad<-rbind(Balgzand_samples_all, Terschelling_samples_all)
-
 Lugworms_count_ad<-(merge(All_count_ad, Lugworms_ad, all.x=TRUE))
 Lugworms_count_ad$n_cruc[is.na(Lugworms_count_ad$n_cruc)]<-0
 Lugworms_count_ad$n_cruc_ceiling<-ceiling(Lugworms_count_ad$n_cruc)
-Lugworms_count_ad_aggr<-aggregate(Lugworms_count_ad$n_cruc_ceiling, by=list(sample_id=Lugworms_count_ad$sample_id, Place=Lugworms_count_ad$Place, sampleyear=Lugworms_count_ad$sampleyear), FUN=sum)
+Lugworms_count_ad_aggr<-aggregate(Lugworms_count_ad$n_cruc_ceiling,
+                                  by=list(sample_id=Lugworms_count_ad$sample_id, Place=Lugworms_count_ad$Place,
+                                  sampleyear=Lugworms_count_ad$sampleyear), FUN=sum)
 ```
 # Estimate mean by area/year
 ```{r}
-tmp<-aggregate(Lugworms_count_ad_aggr$x, by=list(sampleyear=Lugworms_count_ad_aggr$sampleyear, Place=Lugworms_count_ad_aggr$Place), mean)
-Res<-data.frame(sampleyear=2008:2014, Terschelling=subset(tmp, Place=='T')$x/0.01731803, Balgzand=subset(tmp, Place=='B')$x/0.01731803) # convert to square meters
+tmp<-aggregate(Lugworms_count_ad_aggr$x, by=list(sampleyear=Lugworms_count_ad_aggr$sampleyear,
+                                                 Place=Lugworms_count_ad_aggr$Place), mean)
+Res<-data.frame(sampleyear=2008:2014, Terschelling=subset(tmp, Place=='T')$x/0.01731803,
+                Balgzand=subset(tmp, Place=='B')$x/0.01731803) # convert to square meters
 ```
 
 ### Plot results
 ```{r}
 plot(Terschelling~Balgzand, ylab='density Terschelling', xlab='density Balgzand', type='n', data=Res)
-text(x=Res$Balgzand, y=Res$Terschelling,  ylab='density Terschelling', xlab='density Balgzand',  labels=seq(2008,2014))
+text(x=Res$Balgzand, y=Res$Terschelling,  ylab='density Terschelling', xlab='density Balgzand',
+     labels=seq(2008,2014))
 abline(lm(Terschelling~Balgzand, data=Res))
 cor.test(subset(tmp, Place=='T')$x,subset(tmp, Place=='B')$x)
 ```
 ### Conclusion
-
 From here I conclude that data on Terchelling and Balgzand are highly correlated (Pearson correlation coefficient = 0.86). This means that despite difference between two areas in absolute abundance of lugworms they vary between years in the same way. 
 
 ### References
