@@ -1,11 +1,11 @@
-## Validation of use of Balgzand data on lugowrm abundance for inference on _taymyrensis_ Bar-Tailed godwit fuelling rates
+## Validation of use of Balgzand data on lugworm abundance for inference on _taymyrensis_ Bar-Tailed godwit fuelling rates
 
 _this is internal report authorised by Eldar Rakhimberdiev_
 
 Problem description:
-In the mansucript I wrote and would like to submit I used data on lugworm abundance from Balgzand to correlate it with fuelling rates of taymyrensis godwits. The question rased at the department is whether it is correct as we know that our godwits are not abundand there as they prefer Terschelling coast [Duijns et al. 2009](#duijns_2009).
+In the manuscript I wrote and would like to submit I used data on lugworm abundance from Balgzand to correlate it with fuelling rates of taymyrensis godwits. The question raised at the department is whether it is correct as we know that our godwits are not abundant there as they prefer Terschelling coast [Duijns et al. 2009](#duijns_2009).
 Solution:
-SIBES dataset is the only one that covers Terschelling coast, it also covers Balgazand making it possible to directly compare whether the two areas have correlated in time changes in Lugworm abundance. Unfortunately SIBES covers only 2008:2014. 2015 and 2016 sampling years are not yet processed.
+SIBES dataset is the only one that covers Terschelling coast, it also covers Balgzand making it possible to directly compare whether the two areas have correlated in time changes in lugworm abundance. Unfortunately SIBES covers only 2008:2014. 2015 and 2016 sampling years are not yet processed.
 
 ### Download data
 The data are available online till end of December from my Google drive folder.
@@ -14,7 +14,7 @@ The data are available online till end of December from my Google drive folder.
 download.file('https://goo.gl/Jrusw2', 'SIBES.ZIP', mode='wb')
 unzip('SIBES.zip')
 ```
-There is Wadden Islands shapefile and two SIBES data files. One with all samples and another one with Lugworm data.
+There is Wadden Islands shapefile and two SIBES data files. One with all samples and another one with lugworm data.
 
 ### Load required packages:
 ```{r}
@@ -62,7 +62,7 @@ plot(SpPoints_utm, pch='.', add=TRUE)
 plot(Balzand_utm, col='blue', pch='.', add=TRUE)
 ```
 
-### Read Lugworm data
+### Read lugworm data
 ```{r}
 Lugworms<-read.csv('eldar_are39_2008_2015_20161213.csv')
 Lugworms_ad<-subset(Lugworms, wrm_size==1) # select adult lugworms
@@ -99,8 +99,8 @@ abline(lm(Terschelling~Balgzand, data=Res))
 cor.test(subset(tmp, Place=='T')$x,subset(tmp, Place=='B')$x)
 ```
 ### Conclusion
-From here I conclude that data on Terchelling and Balgzand are highly correlated (Pearson correlation coefficient = 0.86). This means that despite difference between two areas in absolute abundance of lugworms they vary between years in the same way. 
+From here I conclude that data on Terchelling and Balgzand are highly correlated (Pearson correlation coefficient = 0.86). This means that despite difference between two areas in absolute abundance of lugworms they vary between years in the same way. Another question whether SIBES on Balgzand correlates with Beukema/Dekker sampling in the same place was already answered by Jaap (internal report). He has shown that Pearson correlation coefficient for lugworms for these two sampling schemes is 0.71.
 
 ### References
 
-1. Duijns, S. et al. Foraging dite delection of two subspecies of bar-tailed godwit _Limosa lapponica_: time minimizers accept greater predation danger than energy minimizers. Ardea 97, 51–59 (2009). <a id="duijns_2009"></a>
+1. Duijns, S. et al. Foraging site delection of two subspecies of bar-tailed godwit _Limosa lapponica_: time minimizers accept greater predation danger than energy minimizers. Ardea 97, 51–59 (2009). <a id="duijns_2009"></a>
