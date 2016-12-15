@@ -37,6 +37,7 @@ Islands_utm<-spTransform(Islands, CRS('+proj=utm +zone=30 +datum=WGS84'))
 ```
 ### Check that data look correct
 ```{r}
+Terschelling_utm<-subset(Islands_utm, landmass=='islands' & SOORT=='Terschelling')
 plot(Islands_utm)
 plot(Terschelling_utm, add=TRUE, col='orange')
 plot(SpPoints_utm, add=TRUE, col=grey(0.5), pch='.')
@@ -104,3 +105,11 @@ From here I conclude that data on Terchelling and Balgzand are highly correlated
 ### References
 
 1. Duijns, S. et al. Foraging site delection of two subspecies of bar-tailed godwit _Limosa lapponica_: time minimizers accept greater predation danger than energy minimizers. Ardea 97, 51–59 (2009). <a id="duijns_2009"></a>
+
+P.S. The html file from this markdown can be recereated with folloing code
+```{r eval=FALSE}
+download.file('https://git.io/v1SnN', 'tmp.rmd')
+rmarkdown::render('tmp.rmd', output_format = 'html_document',
+        output_options=list(toc=TRUE, toc_float=list(collapsed=FALSE)), 
+		encoding='utf-8')
+```
