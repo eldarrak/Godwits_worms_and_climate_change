@@ -82,7 +82,7 @@ Lugworms_count_ad_aggr<-aggregate(Lugworms_count_ad$n_cruc_ceiling,
                                   by=list(sample_id=Lugworms_count_ad$sample_id, Place=Lugworms_count_ad$Place,
                                   sampleyear=Lugworms_count_ad$sampleyear), FUN=sum)
 ```
-# Estimate mean by area/year
+### Estimate mean by area/year
 ```{r}
 tmp<-aggregate(Lugworms_count_ad_aggr$x, by=list(sampleyear=Lugworms_count_ad_aggr$sampleyear,
                                                  Place=Lugworms_count_ad_aggr$Place), mean)
