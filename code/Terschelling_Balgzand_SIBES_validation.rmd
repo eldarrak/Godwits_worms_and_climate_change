@@ -44,7 +44,7 @@ plot(Islands_utm)
 plot(Terschelling_utm, add=TRUE, col='orange')
 plot(SpPoints_utm, add=TRUE, col=grey(0.5), pch='.')
 ```
-everything is in place.
+.
 
 ### Select SIBES points near (within 500 meters from) Terschelling
 ```{r}
