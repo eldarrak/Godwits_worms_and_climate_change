@@ -1,0 +1,101 @@
+## Validation of use of Balgzand data on lugowrm abundance for inference on _taymyrensis_ Bar-Tailed godwit fuelling rates
+
+_this is internal report authorised by Eldar Rakhimberdiev_
+
+Problem description:
+In the mansucript I wrote and would like to submit I used data on lugworm abundance from Balgzand to correlate it with fuelling rates of taymyrensis godwits. The question rased at the department is whether it is correct as we know that our godwits are not abundand there as they prefer Terschelling coast [Duijns et al. 2009](#duijns_2009).
+Solution:
+SIBES dataset is the only one that covers Terschelling coast, it also covers Balgazand making it possible to directly compare whether the two areas have correlated in time changes in Lugworm abundance. Unfortunately SIBES covers only 2008:2014. 2015 and 2016 sampling years are not yet processed.
+
+### Download data
+The data are available online till end of December from my Google drive folder.
+
+```{r}
+download.file('https://goo.gl/Jrusw2', 'SIBES.ZIP', mode='wb')
+unzip('SIBES.zip')
+```
+There is Wadden Islands shapefile and two SIBES data files. One with all samples and another one with Lugworm data.
+
+### Load required packages:
+```{r}
+library(rgdal)
+library(rgeos)
+```
+
+### Read data
+```{r}
+Islands<-readOGR('Islands_Clip.shp')
+Points<-read.csv('eldar_sample2008_2015_20161213.csv')
+# subset points to include only data before 2015, as 2015 is only partially processed.
+Points<-subset(Points, sampleyear<2015)
+SpPoints <- SpatialPointsDataFrame(cbind(Points$x, Points$y), Points, proj4string = CRS('+proj=longlat'))
+
+### Reproject to UTM
+```{r}
+SpPoints_utm<-spTransform(SpPoints, CRS('+proj=utm +zone=30 +datum=WGS84'))
+Islands_utm<-spTransform(Islands, CRS('+proj=utm +zone=30 +datum=WGS84'))
+```
+### Check that data look correct
+```{r}
+plot(Islands_utm)
+plot(Terschelling_utm, add=TRUE, col='orange')
+plot(SpPoints_utm, add=TRUE, col=grey(0.5), pch='.')
+```
+### Select SIBES points near (within 500 meters from) Terschelling
+```{r}
+Terschelling_utm<-subset(Islands_utm, landmass=='islands' & SOORT=='Terschelling')
+Selected_Points<-gWithinDistance(SpPoints_utm, Terschelling_utm, dist=500, byid=TRUE)
+# dist 500 means 500 meters..
+plot(Terschelling_utm)
+plot(SpPoints_utm, add=TRUE, col=grey(0.5), pch=19)
+plot(SpPoints_utm[Selected_Points[1,],], col='red', pch=19, add=TRUE)
+
+# extract sample ID for further reference
+Sample_id_Terschelling<-SpPoints_utm@data$sample_id[Selected_Points[1,]]
+``` 
+
+### Select Balgzand points
+```{r}
+Balzand_utm<-subset(SpPoints_utm, flat_name=='Balgzand')
+plot(Islands_utm)
+plot(SpPoints_utm, pch='.', add=TRUE)
+plot(Balzand_utm, col='blue', pch='.', add=TRUE)
+```
+
+### Read Lugworm data
+```{r}
+Lugworms<-read.csv('eldar_are39_2008_2015_20161213.csv')
+Lugworms_ad<-subset(Lugworms, wrm_size==1) # select adult lugworms
+```
+
+### Combine selected sampling points with lugworm data
+```{r}
+Balgzand_samples_all<-data.frame(Place='B', sample_id=Balzand_utm@data$sample_id, sampleyear=Balzand_utm@data$sampleyear)
+Terschelling_samples_all<-data.frame(Place='T', sample_id=SpPoints_utm@data$sample_id[Selected_Points[1,]], sampleyear=SpPoints_utm@data$sampleyear[Selected_Points[1,]])
+All_count_ad<-rbind(Balgzand_samples_all, Terschelling_samples_all)
+
+Lugworms_count_ad<-(merge(All_count_ad, Lugworms_ad, all.x=TRUE))
+Lugworms_count_ad$n_cruc[is.na(Lugworms_count_ad$n_cruc)]<-0
+Lugworms_count_ad$n_cruc_ceiling<-ceiling(Lugworms_count_ad$n_cruc)
+Lugworms_count_ad_aggr<-aggregate(Lugworms_count_ad$n_cruc_ceiling, by=list(sample_id=Lugworms_count_ad$sample_id, Place=Lugworms_count_ad$Place, sampleyear=Lugworms_count_ad$sampleyear), FUN=sum)
+```
+# Estimate mean by area/year
+```{r}
+tmp<-aggregate(Lugworms_count_ad_aggr$x, by=list(sampleyear=Lugworms_count_ad_aggr$sampleyear, Place=Lugworms_count_ad_aggr$Place), mean)
+Res<-data.frame(sampleyear=2008:2014, Terschelling=subset(tmp, Place=='T')$x/0.01731803, Balgzand=subset(tmp, Place=='B')$x/0.01731803) # convert to square meters
+```
+
+### Plot results
+```{r}
+plot(Terschelling~Balgzand, ylab='density Terschelling', xlab='density Balgzand', type='n', data=Res)
+text(x=Res$Balgzand, y=Res$Terschelling,  ylab='density Terschelling', xlab='density Balgzand',  labels=seq(2008,2014))
+abline(lm(Terschelling~Balgzand, data=Res))
+cor.test(subset(tmp, Place=='T')$x,subset(tmp, Place=='B')$x)
+```
+### Conclusion
+
+From here I conclude that data on Terchelling and Balgzand are highly correlated (Pearson correlation coefficient = 0.86). This means that despite difference between two areas in absolute abundance of lugworms they vary between years in the same way. 
+
+### References
+
+1. Duijns, S. et al. Foraging dite delection of two subspecies of bar-tailed godwit _Limosa lapponica_: time minimizers accept greater predation danger than energy minimizers. Ardea 97, 51–59 (2009). <a id="duijns_2009"></a>
