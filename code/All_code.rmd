@@ -1066,6 +1066,9 @@ if (Save_pdf) dev.off()
 
 ## References
 
+
+
+
 1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922-2010 including an assessment of uncertainty. The Cryosphere 5, 219-229 (2011).<a id="brown-robinson"></a>
 1. Lappo, E., Tomkovich, P. & Syroechkovskiy, E. Atlas of breeding waders in the Russian Arctic. (2012).<a id="lappo"></a>
 1. van Gils, J. A. et al. Body shrinkage due to Arctic warming reduces red knot fitness in tropical wintering range. Science 352, 819-821 (2016).<a id="van-gils"></a>
