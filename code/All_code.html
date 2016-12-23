@@ -589,8 +589,30 @@ sigma2_T0&lt;-(Arrivals$sigma^2)[Arrivals$Yr %in% unique(Data_to_model$Yr)]
 
 Lugworms_vec&lt;-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]</code></pre>
 </div>
+<div id="lugworm-data-validation" class="section level3">
+<h3>3.3 Lugworm data validation</h3>
+<p>While fuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E), that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey (<a href="https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea">SIBES</a>) - large scale grid sampling of benthic fauna in the Wadden Sea. We used SIBES data from sampling stations within 500 meters from Terschelling coast (fuelling area) and from Balgzand for all available years (2008 - 2014).</p>
+<pre class="r"><code>if (Use_local_data) {
+  Lugworms_SIBES&lt;-read.csv('./data/lugworm_densities_two_sites.csv')
+} else {
+  Lugworms_SIBES&lt;-read.csv('https://git.io/vMei1')
+}
+print(cor.test(Lugworms_SIBES$Balgzand,Lugworms_SIBES$Terschelling))</code></pre>
+<pre><code>## 
+##  Pearson's product-moment correlation
+## 
+## data:  Lugworms_SIBES$Balgzand and Lugworms_SIBES$Terschelling
+## t = 3.7207, df = 5, p-value = 0.0137
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.2935283 0.9785580
+## sample estimates:
+##       cor 
+## 0.8571243</code></pre>
+<p>Data on both sites show correlated changes over years (Pearson’s <em>r</em>=0.86) allowing us to use Balgzand data as a proxy for fuelling conditions for godwits.</p>
+</div>
 <div id="formulate-model" class="section level3">
-<h3>3.3 Formulate model</h3>
+<h3>3.4 Formulate model</h3>
 <pre class="r"><code>sink(&quot;fuelling_model.jags&quot;)
 
 cat(&quot;
@@ -636,7 +658,7 @@ cat(&quot;
 sink()</code></pre>
 </div>
 <div id="prepare-data-and-initial-values-1" class="section level3">
-<h3>3.4 Prepare data and initial values</h3>
+<h3>3.5 Prepare data and initial values</h3>
 <pre class="r"><code>Data=list(Wt=Data_to_model$Mass, Time=Data_to_model$yday,
           i2k=as.numeric(as.factor(Data_to_model$Yr)),
           i2s=Data_to_model$Sex, N=length(Data_to_model$Mass), 
@@ -655,7 +677,7 @@ inits=function() {
 jags.params=c(&quot;Alpha_t&quot;, &quot;sigma2_alpha&quot;, &quot;sigma2_alpha_fem&quot;, &quot;K_sat_m&quot;, &quot;K_sat_f&quot;)</code></pre>
 </div>
 <div id="run-the-model-1" class="section level3">
-<h3>3.5 Run the model</h3>
+<h3>3.6 Run the model</h3>
 <pre class="r"><code>if (Run_everything) {
    # following run takes ~ 5 minutes brt
    fuelling_model&lt;- jags(data=Data, inits, parameters=jags.params,
@@ -671,7 +693,7 @@ jags.params=c(&quot;Alpha_t&quot;, &quot;sigma2_alpha&quot;, &quot;sigma2_alpha_
 }</code></pre>
 </div>
 <div id="explore-and-save-model-results" class="section level3">
-<h3>3.6 Explore and save model results</h3>
+<h3>3.7 Explore and save model results</h3>
 <pre class="r"><code>print(fuelling_model)
 Years&lt;-unique(as.numeric((Data_to_model$Yr)))
 # save estimated slopes for survival model
@@ -683,7 +705,7 @@ Fuelling_slopes&lt;-data.frame(Yr=Years,
 write.csv(Fuelling_slopes, file='Fuelling_slopes.csv', row.names=FALSE)</code></pre>
 </div>
 <div id="plot-estimated-fuelling-slopes-by-lugworm-abundance" class="section level3">
-<h3>3.7 Plot estimated fuelling slopes by lugworm abundance</h3>
+<h3>3.8 Plot estimated fuelling slopes by lugworm abundance</h3>
 <pre class="r"><code>time_scales&lt;-abs(1-(Years-(min(Years)-1))/(max((Years-(min(Years)-1))+1)))
 MyColor_palette&lt;-colorRampPalette(c('#FC8D62', 'white'))
 My_colors&lt;-MyColor_palette(100)
