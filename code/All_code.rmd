@@ -316,17 +316,20 @@ sigma2_T0<-(Arrivals$sigma^2)[Arrivals$Yr %in% unique(Data_to_model$Yr)]
 Lugworms_vec<-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]
 
 ```
+
 ### 3.3 Lugworm data validation
 While fuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey (SIBES, XXXX) - large scale grid sampling of benthic fauna in the Wadden Sea.  We used SIBES data from sampling stations within 500 meters from Terschelling coast (fuelling area) and from Balgzand for all available years (2008 - 2014). 
+```{r}
 if (Use_local_data) {
   Lugworms_SIBES<-read.csv('./data/lugworm_densities_two_sites.csv')
 } else {
   Lugworms_SIBES<-read.csv('https://git.io/vMei1')
 }
 print(cor.test(Lugworms_SIBES$Balgzand,Lugworms_SIBES$Terschelling))
+```
 Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for fuelling conditions for lugworms.
 
-### 3.3 Formulate model
+### 3.4 Formulate model
 ```{r results='hide'}
 sink("fuelling_model.jags")
 
@@ -373,7 +376,7 @@ cat("
 sink()
 ```
 
-### 3.4 Prepare data and initial values
+### 3.5 Prepare data and initial values
 ```{r}
 Data=list(Wt=Data_to_model$Mass, Time=Data_to_model$yday,
           i2k=as.numeric(as.factor(Data_to_model$Yr)),
@@ -393,7 +396,7 @@ inits=function() {
 jags.params=c("Alpha_t", "sigma2_alpha", "sigma2_alpha_fem", "K_sat_m", "K_sat_f")
 ```
 
-### 3.5 Run the model
+### 3.6 Run the model
 ```{r}
 if (Run_everything) {
    # following run takes ~ 5 minutes brt
@@ -410,7 +413,7 @@ if (Run_everything) {
 }
 ```
 
-### 3.6 Explore and save model results
+### 3.7 Explore and save model results
 ```{r results='hide'}
 print(fuelling_model)
 Years<-unique(as.numeric((Data_to_model$Yr)))
@@ -423,7 +426,7 @@ Fuelling_slopes<-data.frame(Yr=Years,
 write.csv(Fuelling_slopes, file='Fuelling_slopes.csv', row.names=FALSE)
 ```
 
-### 3.7 Plot estimated fuelling slopes by lugworm abundance
+### 3.8 Plot estimated fuelling slopes by lugworm abundance
 ```{r fig.width=10, fig.height=5}
 time_scales<-abs(1-(Years-(min(Years)-1))/(max((Years-(min(Years)-1))+1)))
 MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
