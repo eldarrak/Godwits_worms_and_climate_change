@@ -327,7 +327,7 @@ if (Use_local_data) {
 }
 print(cor.test(Lugworms_SIBES$Balgzand,Lugworms_SIBES$Terschelling))
 ```
-Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for fuelling conditions for lugworms.
+Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for fuelling conditions for godwits.
 
 ### 3.4 Formulate model
 ```{r results='hide'}
