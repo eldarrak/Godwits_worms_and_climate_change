@@ -316,6 +316,14 @@ sigma2_T0<-(Arrivals$sigma^2)[Arrivals$Yr %in% unique(Data_to_model$Yr)]
 Lugworms_vec<-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]
 
 ```
+### 3.3 Lugworm data validation
+While fuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey (SIBES, XXXX) - large scale grid sampling of benthic fauna in the Wadden Sea.  We used SIBES data from sampling stations within 500 meters from Terschelling coast (fuelling area) and from Balgzand for all available years (2008 - 2014). Data on both sites show correlated changes over years (Pearson's _r_=0.86).
+if (Use_local_data) {
+
+} else {
+
+}
+
 ### 3.3 Formulate model
 ```{r results='hide'}
 sink("fuelling_model.jags")
