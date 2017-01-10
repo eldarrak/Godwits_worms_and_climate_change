@@ -129,8 +129,8 @@ summary(lm(jdate50~Yr, data=subset(Res, Yr>1995)))
 ### 1.6 Comparison of remote sensing data with ground observations
 ```{r}
 if (Use_local_data) {
-   Snow_remote<-read.csv('./results/Snow_remote.csv')
-   Snow_ground<-read.csv('./data/Snow_ground.csv')
+   Snow_remote<-read.csv('/results/Snow_remote.csv')
+   Snow_ground<-read.csv('/data/Snow_ground.csv')
 } else {
    Snow_remote<-read.csv('https://git.io/vXAZ1')
    Snow_ground<-read.csv('https://git.io/vXAnO')
@@ -157,7 +157,7 @@ _To run code from this chapter you need to install JAGS software._
 ```{r}
 library(R2jags)
 if (Use_local_data) {
-   sites_years_dates<-read.csv('./data/godwit_trektellen_seven_major_sites.csv', as.is=TRUE)
+   sites_years_dates<-read.csv('/data/godwit_trektellen_seven_major_sites.csv', as.is=TRUE)
 } else {
    sites_years_dates<-read.csv('https://git.io/vXEBH', as.is=TRUE)
 }
@@ -236,10 +236,10 @@ if (Run_everything) {
                   n.burnin = 200, 
                   working.directory = getwd())
    print(migration_model)
-   saveRDS(migration_model, file='./results/migration_model.RDS')
+   saveRDS(migration_model, file='/results/migration_model.RDS')
 } else {
    if (Use_local_data) {   
-       migration_model<-readRDS('./results/migration_model.RDS')
+       migration_model<-readRDS('/results/migration_model.RDS')
    } else {
        migration_model<-readRDS(gzcon(url('https://git.io/vXgZG')))
    }
@@ -261,7 +261,7 @@ write.csv(Arrivals, file="Arrivals_migration_model.csv", row.names=F)
 ```{r}
 library(lme4)
 if (Use_local_data) {
-   Capture_data<-read.csv('./data/Capture_data.csv', as.is=TRUE)
+   Capture_data<-read.csv('/data/Capture_data.csv', as.is=TRUE)
 } else {
    Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
 }
@@ -298,9 +298,9 @@ Here we load **arrival time** estimated in 2.5 data on lugworm densities in the 
 ```{r}
 library(R2jags)
 if (Use_local_data) {
-   Capture_data<-read.csv('./data/Capture_data.csv', as.is=TRUE)
-   Arrivals<-read.csv('./results/Arrivals_migration_model.csv')
-   Lugworms<-read.csv('./data/Lugworms.csv')
+   Capture_data<-read.csv('/data/Capture_data.csv', as.is=TRUE)
+   Arrivals<-read.csv('/results/Arrivals_migration_model.csv')
+   Lugworms<-read.csv('/data/Lugworms.csv')
 } else {
    Capture_data<-read.csv("https://git.io/vXEDL", as.is=TRUE)
    Arrivals<-read.csv('https://git.io/vXED0')
@@ -318,10 +318,10 @@ Lugworms_vec<-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]
 ```
 
 ### 3.3 Lugworm data validation
-While refuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey ([SIBES](https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea)) - large scale grid sampling of benthic fauna in the Wadden Sea.  We used SIBES data from sampling stations within 500 meters from Terschelling coast (refuelling area) and from Balgzand for all available years (2008 - 2014). 
+While refuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey ([SIBES](https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea)) - large scale grid sampling of benthic fauna in the Wadden Sea ([Bijleveld et al. 2012](#bijleveld), [Compton et al. 2013](#compton)).  We used SIBES data from sampling stations within 500 meters from Terschelling coast (refuelling area) and from Balgzand for all available years (2008 - 2014). 
 ```{r}
 if (Use_local_data) {
-  Lugworms_SIBES<-read.csv('./data/lugworm_densities_two_sites.csv')
+  Lugworms_SIBES<-read.csv('/data/lugworm_densities_two_sites.csv')
 } else {
   Lugworms_SIBES<-read.csv('https://git.io/vMei1')
 }
@@ -403,10 +403,10 @@ if (Run_everything) {
    fuelling_model<- jags(data=Data, inits, parameters=jags.params,
                     "fuelling_model.jags", n.chains = 2, n.thin = 10,
 		    n.iter = 10000, n.burnin = 1000, working.directory = getwd())
-   saveRDS(fuelling_model, file='./results/fuelling_model.RDS')
+   saveRDS(fuelling_model, file='/results/fuelling_model.RDS')
 } else {
    if (Use_local_data) {   
-      fuelling_model<-readRDS('./results/fuelling_model.RDS')
+      fuelling_model<-readRDS('/results/fuelling_model.RDS')
    } else {
       fuelling_model<-readRDS(gzcon(url('https://git.io/vXgvv')))
    }
@@ -484,15 +484,15 @@ We used Cormack–Jolly–Seber (CJS) model ([Lebreton et al., 1992](#lebreton))
 library('RMark')
 if (Use_local_data) {
    # a. load main CR data
-   Full_CH<-read.csv('./data/Full_CH.csv', colClasses='character', row.names='code')
+   Full_CH<-read.csv('/data/Full_CH.csv', colClasses='character', row.names='code')
    # b. get arrivals to the Wadden Sea
-   Arrivals_WS<-read.csv('./results/Arrivals_migration_model.csv')
+   Arrivals_WS<-read.csv('/results/Arrivals_migration_model.csv')
    # c. get arrival weights
-   Arrival_weights<-read.csv('./results/Arrival_weights.csv')
+   Arrival_weights<-read.csv('/results/Arrival_weights.csv')
    # d. get annual slopes
-   Fuelling_slopes<-read.csv('./results/Fuelling_slopes.csv')
+   Fuelling_slopes<-read.csv('/results/Fuelling_slopes.csv')
    # e. get departures from Wadden Sea through arrival to Taimyr
-   Arrival_Taimyr<-read.csv('./data/Arrivals_Khat.csv')
+   Arrival_Taimyr<-read.csv('/data/Arrivals_Khat.csv')
 } else {
    # a. load main CR data
    Full_CH<-read.csv('https://git.io/vXEFF', colClasses='character', row.names='code')
@@ -594,10 +594,10 @@ cml=create.model.list("CJS")
 ```{r}
 if (Run_everything) {
    Res<-  mark.wrapper(cml, data=Godwit.data, ddl=Godwit.ddl, delete=FALSE, profile.int=F)
-   saveRDS(Res, file='./results/survival_result.RDS')
+   saveRDS(Res, file='/results/survival_result.RDS')
 } else {
    if (Use_local_data) {
-      Res<-readRDS('./results/survival_result.RDS')
+      Res<-readRDS('/results/survival_result.RDS')
    } else {
    Res<-readRDS(gzcon(url('https://git.io/vXueC')))
    }
@@ -704,14 +704,14 @@ lines(lcl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
 if (Save_pdf) dev.off()
 ```
 
-## 5. Population trends from winter counts in Mauritania
+## 5. Population trends from winter counts in West Africa
 We modelled change in total population of godwits in state space modelled suggested by Kéry & Shcaub ([2012](#kery-schaub)), but with negative binomial error distribution.
 
 ### 5.1 Load packages and data
 ```{r}
 library(R2jags)
 if (Use_local_data) {
-   Counts<-read.csv('./data/Counts_Mauritania.csv')
+   Counts<-read.csv('/data/Counts_Mauritania.csv')
 } else {
    Counts<-read.csv('https://git.io/vXuL5')
 }
@@ -775,10 +775,10 @@ if (Run_everything) {
    Counts_model<- jags(data=jags.data, inits, parameters=jags.params,
    "winter_counts_model.jags", n.chains = 2, n.thin = 10, n.iter = 20000,
    n.burnin = 5000, working.directory = getwd())
-   saveRDS(Counts_model, file='./results/Mauritania_counts_model.RDS')
+   saveRDS(Counts_model, file='/results/Mauritania_counts_model.RDS')
 } else {
    if (Use_local_data) {
-      Counts_model<-readRDS('./results/Mauritania_counts_model.RDS')
+      Counts_model<-readRDS('/results/Mauritania_counts_model.RDS')
    } else {
       Counts_model<-readRDS(gzcon(url('https://git.io/vXuqH')))
    }
@@ -809,15 +809,15 @@ if (Save_pdf) dev.off()
 ```{r}
 if (Use_local_data) {
    # read Snow
-   Snow<-read.csv('./results/Snow_remote.csv', as.is=TRUE)
+   Snow<-read.csv('/results/Snow_remote.csv', as.is=TRUE)
    # read breeding data
-   Nests<-read.csv('./data/Nests.csv', as.is=TRUE)
+   Nests<-read.csv('/data/Nests.csv', as.is=TRUE)
    # read crane flies
-   Tipula<-read.csv('./data/Tipula.csv', as.is=TRUE)
+   Tipula<-read.csv('/data/Tipula.csv', as.is=TRUE)
    # read arrivals to Khatanga
-   Arrivals_Khat<-read.csv('./data/Arrivals_Khat.csv', as.is=TRUE)
+   Arrivals_Khat<-read.csv('/data/Arrivals_Khat.csv', as.is=TRUE)
    # read arrivals to Wadden Sea (predicted by arrival model)
-   Arr_Wadden<-read.csv('./results/Arrivals_migration_model.csv')
+   Arr_Wadden<-read.csv('/results/Arrivals_migration_model.csv')
 } else {
    # read Snow
    Snow<-read.csv('https://git.io/vXAZ1', as.is=TRUE)
@@ -920,12 +920,12 @@ if (Save_pdf) dev.off()
 ### 7.1 Load data
 ```{r}
 if (Use_local_data) {
-   fuelling_model<-readRDS('./results/fuelling_model.RDS')
-   Estimates_females<-read.csv(file='./results/female_survival_prediction.csv')
+   fuelling_model<-readRDS('/results/fuelling_model.RDS')
+   Estimates_females<-read.csv(file='/results/female_survival_prediction.csv')
    # read arrivals to Wadden Sea (predicted by arrival model)
-   Arr_Wadden<-read.csv(file='./results/Arrivals_migration_model.csv')   
+   Arr_Wadden<-read.csv(file='/results/Arrivals_migration_model.csv')   
    Lugworms<-read.csv('.data/Lugworms.csv')
-   Estimates_females<-read.csv(file='./results/female_survival_prediction.csv')
+   Estimates_females<-read.csv(file='/results/female_survival_prediction.csv')
 } else {
    fuelling_model<-readRDS(gzcon(url('https://git.io/vXgvv')))
    Estimates_females<-read.csv(file='https://git.io/vXgvd')
@@ -994,7 +994,7 @@ mtext(side=1, 'Year', line=3, cex=1.5)
 par(xpd=FALSE)
 
 axis(4, labels=FALSE)
-mtext(side=2, 'fuelling time (days)', line=1,cex=1.5,)
+mtext(side=2, 'refuelling time (days)', line=1,cex=1.5,)
 abline(lm(Stayover~Yr, data=Stayovers), lwd=2)
 
 MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
@@ -1072,23 +1072,28 @@ abline(v=mean(Stayovers$lugworms_ad), lwd=2, col=Early_color)
 abline(v=25.1,  lwd=2, col=Late_color)
 box()
 mtext(side=2, 'n Years', line=3, cex=1.5)
-mtext(side=1, expression(paste( plain('Lugworm density (') , frac(plain(' individuals '), plain('meter')^ plain("2")), plain(')'))), line=3, cex=1.5)
+mtext(side=1, expression(paste( plain('Lugworm density (ind./m') ^ 
+                                plain("2") ,  plain(')'))), 
+								line=3, cex=1.5)
 
 if (Save_pdf) dev.off()
 ```
 
 ## References
 
+1. Bijleveld, A. I. et al. Designing a benthic monitoring programme with multiple conflicting objectives. Methods Ecol. Evol. 3, 526–536 (2012).<a id="bijleveld"></a>
 1. Brown, R. D. & Robinson, D. A. Northern Hemisphere spring snow cover variability and change over 1922-2010 including an assessment of uncertainty. The Cryosphere 5, 219-229 (2011).<a id="brown-robinson"></a>
-1. Lappo, E., Tomkovich, P. & Syroechkovskiy, E. Atlas of breeding waders in the Russian Arctic. (2012).<a id="lappo"></a>
+1. Compton, T. J. et al. Distinctly variable mudscapes: Distribution gradients of intertidal macrofauna across the Dutch Wadden Sea. J. Sea Res. 82, 103–116 (2013).<a id="compton"></a>
 1. van Gils, J. A. et al. Body shrinkage due to Arctic warming reduces red knot fitness in tropical wintering range. Science 352, 819-821 (2016).<a id="van-gils"></a>
+1. Kéry, M. & Schaub, M. Bayesian population analysis using WinBUGS a hierarchical perspective. (Academic Press, 2012).<a id="kery-schaub"></a>
+1. Laake, J. L. RMark: An R interface for analysis of capture-recapture data with MARK. 25 (Alaska Fish. Sci. Cent., NOAA, Natl. Mar. Fish. Serv., 2013).<a id="laake"></a>
+1. Lappo, E., Tomkovich, P. & Syroechkovskiy, E. Atlas of breeding waders in the Russian Arctic. (2012).<a id="lappo"></a>
+1. Lebreton, J.-D., Burnham, K. P., Clobert, J. & Anderson, D. R. Modeling survival and testing biological hypotheses using marked animals: a unified approach with case studies. Ecol. Monogr. 62, 67-118 (1992).<a id="lebreton"></a>
 1. Lindén, A. & Mäntyniemi, S. Using the negative binomial distribution to model overdispersion in ecological count data. Ecology 92, 1414-1421 (2011).<a id="lindén-mäntyniemi"></a>
 1. Plummer, M. JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling. (2003).<a id="plummer"></a>
 1. Su, Y.-S. & Masanao Yajima. R2jags: Using R to Run 'JAGS'. (2015).<a id="su-yahima"></a>
-1. Lebreton, J.-D., Burnham, K. P., Clobert, J. & Anderson, D. R. Modeling survival and testing biological hypotheses using marked animals: a unified approach with case studies. Ecol. Monogr. 62, 67-118 (1992).<a id="lebreton"></a>
 1. White, G. C. & Burnham, K. P. Program MARK: survival estimation from populations of marked animals. Bird Study 46, S120-S139 (1999).<a id="white"></a>
-1. Laake, J. L. RMark: An R interface for analysis of capture-recapture data with MARK. 25 (Alaska Fish. Sci. Cent., NOAA, Natl. Mar. Fish. Serv., 2013).<a id="laake"></a>
-1. Kéry, M. & Schaub, M. Bayesian population analysis using WinBUGS a hierarchical perspective. (Academic Press, 2012).<a id="kery-schaub"></a>
+
 
 P.S. The html file from this markdown can be recereated with folloing code
 ```{r eval=FALSE}
