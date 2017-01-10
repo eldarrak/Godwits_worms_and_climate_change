@@ -255,7 +255,7 @@ Arrivals<-data.frame(Yr=unique(sites_years_dates$Year),
 write.csv(Arrivals, file="Arrivals_migration_model.csv", row.names=F)
 ```
 
-## 3. Fuelling rates and their relationship with lugworm abundance
+## 3. Refuelling rates and their relationship with lugworm abundance
 
 ### 3.1 Estimate yearly arrival weights from Castricum data
 ```{r}
@@ -318,7 +318,7 @@ Lugworms_vec<-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]
 ```
 
 ### 3.3 Lugworm data validation
-While fuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey ([SIBES](https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea)) - large scale grid sampling of benthic fauna in the Wadden Sea.  We used SIBES data from sampling stations within 500 meters from Terschelling coast (fuelling area) and from Balgzand for all available years (2008 - 2014). 
+While refuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey ([SIBES](https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea)) - large scale grid sampling of benthic fauna in the Wadden Sea.  We used SIBES data from sampling stations within 500 meters from Terschelling coast (refuelling area) and from Balgzand for all available years (2008 - 2014). 
 ```{r}
 if (Use_local_data) {
   Lugworms_SIBES<-read.csv('./data/lugworm_densities_two_sites.csv')
@@ -327,7 +327,7 @@ if (Use_local_data) {
 }
 print(cor.test(Lugworms_SIBES$Balgzand,Lugworms_SIBES$Terschelling))
 ```
-Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for fuelling conditions for godwits.
+Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for refuelling conditions for godwits.
 
 ### 3.4 Formulate model
 ```{r results='hide'}
@@ -426,7 +426,7 @@ Fuelling_slopes<-data.frame(Yr=Years,
 write.csv(Fuelling_slopes, file='Fuelling_slopes.csv', row.names=FALSE)
 ```
 
-### 3.8 Plot estimated fuelling slopes by lugworm abundance
+### 3.8 Plot estimated refuelling slopes by lugworm abundance
 ```{r fig.width=10, fig.height=5}
 time_scales<-abs(1-(Years-(min(Years)-1))/(max((Years-(min(Years)-1))+1)))
 MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
@@ -955,7 +955,7 @@ Create grid for prediction
 ```{r}
 XY<-expand.grid(Lugworm_density=seq(5,33, 0.1), stayover=seq(17,37, 0.1))
 ```
-now for every of these points I get estimate of fueling slope, that I will combine with the stayover
+now for every of these points I get estimate of fuelling slope, that I will combine with the stayover
 ```{r}
 x=XY[,1]
 a<-sapply(x, FUN=function(x) quantile(x*13.2/(fuelling_model$BUGSoutput$sims.list$K_sat_f + x),
