@@ -84,7 +84,9 @@ Grid_centers_lon_lat<-spTransform(Grid_centers, CRS=CRS(proj4string(area.longlat
 Selected_Points<-which(!is.na(over(Grid_centers, area)))
 # Ok now we want to take two points closest to the field site
 Field_site<-cbind(106.0,72.8)
-Selected_Points_near_field_station<-Selected_Points[sort(order(spDists(coordinates(Grid_centers_lon_lat[Selected_Points,]), Field_site, longlat=TRUE))[1:2])]
+Selected_Points_near_field_station<-Selected_Points[
+     sort(order(spDists(coordinates(Grid_centers_lon_lat[Selected_Points,]),
+	 Field_site, longlat=TRUE))[1:2])]
 
 # Plot
 Colors<-c('#1b9e77', '#d95f02', '#7570b3')
@@ -137,7 +139,9 @@ if (Use_local_data) {
 }
 # now we merge them
 Snow_all<-merge(Snow_remote, Snow_ground)
-plot(jdate50_south~ jdate50_ground, data=Snow_all, pch=19, cex=2, col=Colors[3], las=1, xlab='Snow 50% date from ground observations (yday)', ylab='Snow 50% date from remote data (yday)')
+plot(jdate50_south~ jdate50_ground, data=Snow_all, pch=19, cex=2, col=Colors[3], las=1,
+     xlab='Snow 50% date from ground observations (yday)',
+	 ylab='Snow 50% date from remote data (yday)')
 # draw regression line
 abline(a=0, b=1, col=1, lwd=2)
 abline(lm(jdate50_south~ jdate50_ground, data=Snow_all), lwd=2, col=Colors[3])
