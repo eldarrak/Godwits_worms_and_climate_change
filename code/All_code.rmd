@@ -293,7 +293,8 @@ sigma2_W0_males<-var(residuals(weight_model_males))
 
 Arrival_weights<-data.frame(Yr=as.numeric(levels(aggr_data_females$fYr)),
                             Male_arrival_weight=mu_W0_males,
-			    Female_arrival_weight=mu_W0_females)
+			    Female_arrival_weight=mu_W0_females, Male_arrival_weight_sigma=sqrt(sigma2_W0_males),
+				Female_arrival_weight_sigma=sqrt(sigma2_W0_females))
 write.csv(Arrival_weights, file='Arrival_weights.csv', row.names=FALSE)
 ```
 
@@ -432,9 +433,6 @@ write.csv(Fuelling_slopes, file='Fuelling_slopes.csv', row.names=FALSE)
 
 ### 3.8 Plot estimated refuelling slopes by lugworm abundance
 ```{r fig.width=10, fig.height=5}
-time_scales<-abs(1-(Years-(min(Years)-1))/(max((Years-(min(Years)-1))+1)))
-MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
-My_colors<-MyColor_palette(100)
 
 if (Save_pdf) pdf('fueling rate.pdf', useDingbats=FALSE, width=10, height=10)
 
@@ -453,7 +451,7 @@ lines(Y_m[,2]~XX, lwd=2)
 lines(Y_m[,3]~XX, lwd=2, lty=2)
 for (i in 1:length(Lugworms_vec)) {
    points(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i],
-   pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
+   pch=21, cex=4, bg='#fdb194', lwd=2)
    text(fuelling_model$BUGSoutput$mean$Alpha_t[i,1]~Lugworms_vec[i],
    labels = substr(Years[i],3,4))
 }
@@ -472,7 +470,7 @@ lines(Y_fem[,2]~XX, lwd=2)
 lines(Y_fem[,3]~XX, lwd=2, lty=2)
 for (i in 1:length(Lugworms_vec)) {
    points(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i],
-   pch=21, cex=4, bg=My_colors[round(time_scales*100)][i], lwd=2)
+   pch=21, cex=4, bg='#fdb194', lwd=2)
    text(fuelling_model$BUGSoutput$mean$Alpha_t[i,2]~Lugworms_vec[i],
    labels = substr(Years[i],3,4))
 }
@@ -672,7 +670,7 @@ if (Save_pdf) pdf('male_female_survival_over_fuel_load.pdf')
 par(mfrow=c(1,2))
 # Males
 plot(estimate~Male_weight_cov, data=Estimates_males,  ylim=c(0.8, 0.95),
-     ylab='Apparent Survival', xlab='Deposited fuel, g', las=1,
+     ylab='Annual apparent survival', xlab='Deposited fuel, g', las=1,
      xlim=range(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='mWad']),
      type='n', main='Males')
 lines(estimate~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
@@ -690,7 +688,7 @@ lines(lcl~Male_weight_cov, data=subset(Estimates_males, Male_weight_cov>=
 
 #  Females
 plot(estimate~Female_weight_cov, data=Estimates_females,  ylim=c(0.8, 0.95),
-     ylab='Apparent Survival', xlab='Deposited fuel, g', las=1,
+     ylab='Annual apppparent survival', xlab='Deposited fuel, g', las=1,
      xlim=range(Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='fWad']),
      type='n', main='Females')
 lines(estimate~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
@@ -792,7 +790,7 @@ if (Run_everything) {
 ### 5.5 Plot model results for panel C in Fig.1
 ```{r fig.width=5, fig.height=5, results='hide'}
 print(Counts_model)
-if (Save_pdf) pdf("Mauritania_counts.pdf", 5, 5)
+if (Save_pdf) pdf("Mauritania_counts.pdf", 5, 5, useDingbats=FALSE)
 Predicted_densities<-as.data.frame(cbind(Years, 
       t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
       FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
@@ -803,7 +801,7 @@ Colors<-colorRampPalette(c("white", "#0072B2"))
 polygon(x=c(Predicted_densities$Years, rev(Predicted_densities$Years)),
         y=c(Predicted_densities$lcl, rev(Predicted_densities$ucl)), col=Colors(5)[2], border=NA)
 lines(median~Years, data=Predicted_densities, col='#0072B2', lwd=2)
-points(rowSums(y.matrix)~ Years, pch='+', col='#0072B2', cex=2)
+points(rowSums(y.matrix)~ Years, pch=21, bg='#0072B2', cex=2, col=NULL)
 if (Save_pdf) dev.off()
 ```
 
@@ -868,7 +866,7 @@ axis(1)
 box()
 Snow<-subset(Snow, Yr %in% c(1992:2016))
 polygon(y=c(Snow$yday, rep(200, length(Snow$yday))), 
-        x=c(Snow$Yr, rev(Snow$Yr)),  pch=21, cex=4, 
+        x=c(Snow$Yr, rev(Snow$Yr)),  cex=4, 
 	bg=grey(0.5), lwd=2, col='#bae4bc', border='#7bccc4')
 # time lines
 abline(h=121, col=grey(0.5))
@@ -884,37 +882,35 @@ text(y=182, x=2019, '1 July')
 par(xpd=FALSE)
 # snow
 abline(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2015))), col='#7bccc4', lwd=2)
-# tipula
-points(yday~Yr, data=Tipula, pch=21, bg='#33a02c', lwd=1, cex=2, col=NULL )
+# tipula#8783ce
+Tipula_color<-'#cbce83'
+points(yday~Yr, data=Tipula, pch=21, bg=Tipula_color, lwd=1, cex=2, col=NULL )
 lm_tipula<-lm(yday~Yr+Region, data=Tipula)
 lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
-              c(1992,2016),lwd=2, col='#33a02c')
+              c(1992,2016),lwd=2, col=Tipula_color)
 lines(predict(lm_tipula, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
-              c((2004-0.5):(2007+0.5)), lwd=2, col='#33a02c', lty=2)
+              c((2004-0.5):(2007+0.5)), lwd=2, col=Tipula_color, lty=2)
 # nests
-points(yday~Yr, data=Nests, pch='+', cex=2,  lwd=1, col='#cc79a7')
+points(yday~Yr, data=Nests, pch=21, cex=2,  lwd=1, bg='#cc79a7', col=NULL)
 lm_nests<-lm(yday~Yr+Region, data=Nests)
 lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
               c(1992,2016), lwd=2, col='#cc79a7')
 lines(predict(lm_nests, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
               c((2004-0.5):(2007+0.5)), lwd=2, col='#cc79a7', lty=2)
 # Khat arrivals
-abline(lm(yday~Yr, data=Arrivals_Khat),col='#E69F00', lwd=2)
-points(yday~Yr, data=Arrivals_Khat,  pch=21, cex=2, bg='#E69F00', lwd=1, col=NULL)
+Khat_arr_color<-'#cbce83'
+abline(lm(yday~Yr, data=Arrivals_Khat),col=Khat_arr_color, lwd=2)
+points(yday~Yr, data=Arrivals_Khat,  pch=21, cex=2, bg=Khat_arr_color, lwd=1, col=NULL)
 # Wadden arrivals..
 Width=0.25
 Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
 Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
 Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
-Stayovers$time_scales<-abs(1-(Stayovers$Yr-(min(Stayovers$Yr)-1))/
-                       (max((Stayovers$Yr-(min(Stayovers$Yr)-1))+1)))
-MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
-My_colors<-MyColor_palette(100)
 rect(xleft=Stayovers$Yr-Width, xright=Stayovers$Yr+Width, 
      ybottom=Stayovers$yday, ytop=Stayovers$Departure, 
-     border=NA, col=My_colors[round(Stayovers$time_scales*100)])
+     border=NA, col='#fdb194')
 abline(lm(yday~Yr, data=Arr_Wadden), col='#FC8D62', lwd=2)
-points(yday~Yr, data=Arr_Wadden, bg='#FC8D62', pch=23, cex=2, col=grey(0.9))
+points(yday~Yr, data=Arr_Wadden, bg='#FC8D62', pch=21, cex=2, col=grey(0.9))
 box()
 if (Save_pdf) dev.off()
 ```
@@ -951,8 +947,6 @@ summary(lm(lugworms_ad~Yr, data=subset(Lugworms, Yr>1995)))
    names(Arr_Wadden)[2]<-'yday'
    Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
    Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
-   Stayovers$time_scales<-abs(1-(Stayovers$Yr-(min(Stayovers$Yr)-1))/
-                             (max((Stayovers$Yr-(min(Stayovers$Yr)-1))+1)))
    Stayovers<-merge(Stayovers, Lugworms)
 ```
 Create grid for prediction
@@ -1001,9 +995,6 @@ axis(4, labels=FALSE)
 mtext(side=2, 'refuelling time (days)', line=1,cex=1.5,)
 abline(lm(Stayover~Yr, data=Stayovers), lwd=2)
 
-MyColor_palette<-colorRampPalette(c('#FC8D62', 'white'))
-My_colors<-MyColor_palette(100)
-
 #Horizontal lines with specific colors
 abline(h=predict(lm(Stayover~Yr, data=Stayovers), 
                  newdata=data.frame(Yr=c(2015))), lwd=2, col=Late_color)
@@ -1015,7 +1006,7 @@ abline(v=1995, lwd=2, col=Early_color)
 # 
 for (i in 1:nrow(Stayovers)) {
    points(Stayover~Yr, data=Stayovers[i,], pch=21, cex=4,
-          bg=My_colors[round(Stayovers[i,]$time_scales*100)], lwd=2)
+          bg='#fdb194', lwd=1, col=grey(0.1))
    text(Stayover~Yr, data=Stayovers[i,], labels = substr(Yr,3,4))
 }
 box()
@@ -1055,7 +1046,7 @@ abline(v=mean(Stayovers$lugworms_ad), col=Early_color, lwd=2)
 
 for (i in 1:nrow(Stayovers)){
    points(Stayover~lugworms_ad, data=Stayovers[i,], pch=21, cex=4,
-          bg=My_colors[round(Stayovers$time_scales[i]*100)], lwd=2)
+          bg='#fdb194', lwd=1, col=grey(0.1))
    text(Stayover~lugworms_ad, data=Stayovers[i,], labels = substr(Yr,3,4))
 }
 box()
@@ -1082,6 +1073,153 @@ mtext(side=1, expression(paste( plain('Lugworm density (ind./m') ^
 
 if (Save_pdf) dev.off()
 ```
+
+## 8. Plot capture data with slopes (Extended data Figure 1 and 2)
+
+## 8.1 Load data 
+```{r}
+if (Use_local_data) {
+   # a. get arrivals to the Wadden Sea
+   Arrivals_WS<-read.csv('/results/Arrivals_migration_model.csv')
+   # b. get arrival weights
+   Arrival_weights<-read.csv('/results/Arrival_weights.csv')
+   # c. get annual slopes
+   Fuelling_slopes<-read.csv('/results/Fuelling_slopes.csv')
+   # d. get departures from Wadden Sea through arrival to Taimyr
+   Arrival_Taimyr<-read.csv('/data/Arrivals_Khat.csv')
+} else {
+   # a. get arrivals to the Wadden Sea
+   Arrivals_WS<-read.csv('https://git.io/vXESW')
+   # b. get arrival weights
+   Arrival_weights<-read.csv('https://git.io/vXEbX')
+   # c. get annual slopes
+   Fuelling_slopes<-read.csv('https://git.io/vXEb5')
+   # d. get departures from Wadden Sea through arrival to Taimyr
+   Arrival_Taimyr<-read.csv('https://git.io/vXEbj')
+}
+```
+
+## 8.2 Prepare data for plotting
+```{r}
+   names(Arrivals_WS)<-'yday'
+   Arrivals<-merge(Arrivals_WS, Arrival_weights)
+   Arrivals$Left_95<-Arrivals$arrival-1.96*Arrivals$sigma
+   Arrivals$Right_95<-Arrivals$arrival+1.96*Arrivals$sigma
+   Arrivals$Males_low<-Arrivals$Male_arrival_weight-1.96*Arrivals$Male_arrival_weight_sigma
+   Arrivals$Males_up<-Arrivals$Male_arrival_weight+1.96*Arrivals$Male_arrival_weight_sigma
+   Arrivals$Females_low<-Arrivals$Female_arrival_weight-1.96*Arrivals$Female_arrival_weight_sigma
+   Arrivals$Females_up<-Arrivals$Female_arrival_weight+1.96*Arrivals$Female_arrival_weight_sigma
+   Arrivals<-merge(Arrivals, Fuelling_slopes[,1:3])
+   Arrivals$Male_fuelling_intercept<-  Arrivals$Male_arrival_weight-
+                                        Arrivals$Fuelling_slope_males*Arrivals$arrival
+   Arrivals$Female_fuelling_intercept<-Arrivals$Female_arrival_weight-
+                                        Arrivals$Fuelling_slope_females*Arrivals$arrival
+      
+   Departure_Wadden<-Arrival_Taimyr[,c(1,3)]
+   Departure_Wadden$Departure<-Departure_Wadden$yday-4
+   Departure_Wadden<-Departure_Wadden[,-2]
+  
+   Arrivals<-merge(Arrivals,Departure_Wadden, all.x=TRUE )
+   Arrivals$Male_Departure_Weight<-Arrivals$Male_fuelling_intercept+
+                                       Arrivals$Fuelling_slope_males*Arrivals$Departure
+   Arrivals$Female_Departure_Weight<-Arrivals$Female_fuelling_intercept+
+                                       Arrivals$Fuelling_slope_females*Arrivals$Departure
+
+   Capture_data_males<-subset(Capture_data, Sex==1)
+   Capture_data_females<-subset(Capture_data, Sex==2)
+   
+   Lwd<-1
+```
+
+## 8.2 Plot figure for males
+```{r}
+   p<-ggplot(data = Capture_data_males, aes(x = yday, y = Mass)) +
+   ylim(150, 450) + 
+   geom_point(col='#fdb194', data=subset(Capture_data_males, Site!='Castricum')) +
+   geom_point(col='#F0E442', data=subset(Capture_data_males, Site=='Castricum'))+
+   facet_wrap( ~ Yr) + 
+   # arrival time sd
+   geom_segment(data=Arrivals, aes(x = Left_95, y = Male_arrival_weight,
+                 xend=Right_95, yend=Male_arrival_weight), col='#009E73', lwd=Lwd) +
+   geom_segment(data=Arrivals, aes(x = arrival, y = Males_low,
+                 xend=arrival, yend=Males_up), col='#E69F00', lwd=Lwd) +
+   geom_abline(data=Arrivals, aes(intercept=Male_fuelling_intercept,
+                 slope=Fuelling_slope_males), col='#D55E00', lwd=Lwd) +
+   geom_vline(data=subset(Arrivals), aes(xintercept = Departure), col="#56B4E9", lwd=Lwd) +
+   geom_hline(col='#0072B2', data=Arrivals, aes(yintercept = Male_Departure_Weight), lwd=Lwd)+
+   labs(title='Males')
+   print(p)  
+   if (Save_pdf) ggsave(p, file='Males_captures.pdf', 
+                        device='pdf', width=10, height=10, useDingbats=FALSE)
+```
+
+## 8.3 Plot figure for females
+```{r}
+   p1<-ggplot(data = Capture_data_females, aes(x = yday, y = Mass)) +
+   geom_point(col='#fdb194', data=subset(Capture_data_females, Site!='Castricum')) +
+   geom_point(col='#F0E442', data=subset(Capture_data_females, Site=='Castricum'))+
+   facet_wrap( ~ Yr) + 
+   # arrival time sd
+   geom_segment(data=Arrivals, aes(x = Left_95, y = Female_arrival_weight,
+         xend=Right_95, yend=Female_arrival_weight), col='#009E73', lwd=Lwd) +
+   geom_segment(data=Arrivals, aes(x = arrival, y = Females_low,
+         xend=arrival, yend=Females_up), col='#E69F00', lwd=Lwd) +
+   geom_abline(data=Arrivals, aes(intercept=Female_fuelling_intercept,
+                                  slope=Fuelling_slope_females), col='#D55E00', lwd=Lwd) +
+   geom_vline(data=subset(Arrivals), aes(xintercept = Departure), col="#56B4E9", lwd=Lwd) +
+   geom_hline(col='#0072B2', data=Arrivals, aes(yintercept = Female_Departure_Weight), lwd=Lwd)+
+   labs(title='Females')
+   print(p1) 
+
+   if (Save_pdf) ggsave(p1, file='Females_captures.pdf',
+                            device='pdf', width=10, height=10, useDingbats=FALSE)
+```
+
+## 8.4 Plot legend
+```{r fig.width=2, fig.height=2}
+   Leg_frame<-data.frame(x=c(-1, 1), y=c(-1, 1))
+   X_labels<--0.85
+   X_text<--0.6
+   p3<-ggplot(Leg_frame, aes())+
+   ylim(-1,1)+
+   xlim(-1,1)+
+   theme(
+        text = element_blank(),
+        line = element_blank(),
+        title = element_blank())+
+   geom_point(col='#fdb194', data=data.frame(x=X_labels, y=0.75), aes(x=x, y=y), cex=3)+
+   annotate("text", x=X_text, y = 0.75, label = "Wadden captures",hjust = 0)+
+
+   geom_point(col='#F0E442', data=data.frame(x=X_labels, y=0.5), aes(x=x, y=y), cex=3)+
+   annotate("text", x=X_text, y = 0.5, label = "Castricum captures",hjust = 0)+
+
+   annotate("segment", x=X_labels-0.1, xend=X_labels+0.1, y=0.25, yend=0.25,
+            col='#009E73', lwd=1.5)+
+   annotate("text", x=X_text, y = 0.25, label = "arrival period (95%)",hjust = 0)+
+
+   annotate("segment", x=X_labels, xend=X_labels, y=0-0.075, yend=0+0.075,
+            col='#E69F00', lwd=1.5)+
+   annotate("text", x=X_text, y = 0, label = "arrival weight (95%)",hjust = 0) +
+
+   annotate("segment", x=X_labels-0.1, xend=X_labels+0.1, y=-0.25-0.075, yend=-0.25+0.075,
+            col='#D55E00', lwd=1.5)+
+   annotate("text", x=X_text, y = -0.25, label = "refuelling slope", hjust = 0) +
+
+   annotate("segment", x=X_labels, xend=X_labels, y=-0.5-0.075, yend=-0.5+0.075,
+            col='#56B4E9', lwd=1.5)+
+   annotate("text", x=X_text, y = -0.5, label = "departure time",hjust = 0) +
+
+   annotate("segment", x=X_labels-0.1, xend=X_labels+0.1, y=-0.75, yend=-0.75, 
+            col='#0072B2', lwd=1.5)+
+   annotate("text", x=X_text, y = -0.75, label = "departure mass",hjust = 0)
+   
+   print(p3)
+
+   if (Save_pdf) ggsave(p3, file='Legend.pdf', device='pdf', width=2,
+                        height=2, useDingbats=FALSE)
+```
+
+
 
 ## References
 
