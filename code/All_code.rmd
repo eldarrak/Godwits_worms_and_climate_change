@@ -1101,7 +1101,7 @@ if (Use_local_data) {
 
 ## 8.2 Prepare data for plotting
 ```{r}
-   names(Arrivals_WS)<-'yday'
+   #names(Arrivals_WS)[2]<-'yday'
    Arrivals<-merge(Arrivals_WS, Arrival_weights)
    Arrivals$Left_95<-Arrivals$arrival-1.96*Arrivals$sigma
    Arrivals$Right_95<-Arrivals$arrival+1.96*Arrivals$sigma
