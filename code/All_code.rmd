@@ -1132,7 +1132,7 @@ if (Use_local_data) {
 ```
 
 ## 8.2 Plot figure for males
-```{r}
+```{r fig.width=10, fig.height=10}
    p<-ggplot(data = Capture_data_males, aes(x = yday, y = Mass)) +
    ylim(150, 450) + 
    geom_point(col='#fdb194', data=subset(Capture_data_males, Site!='Castricum')) +
@@ -1154,7 +1154,7 @@ if (Use_local_data) {
 ```
 
 ## 8.3 Plot figure for females
-```{r}
+```{r fig.width=10, fig.height=10}
    p1<-ggplot(data = Capture_data_females, aes(x = yday, y = Mass)) +
    geom_point(col='#fdb194', data=subset(Capture_data_females, Site!='Castricum')) +
    geom_point(col='#F0E442', data=subset(Capture_data_females, Site=='Castricum'))+
