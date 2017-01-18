@@ -1169,7 +1169,7 @@ if (Use_local_data) {
    geom_vline(data=subset(Arrivals), aes(xintercept = Departure), col="#56B4E9", lwd=Lwd) +
    geom_hline(col='#0072B2', data=Arrivals, aes(yintercept = Female_Departure_Weight), lwd=Lwd)+
    labs(title='Females')
-   print(p1) 
+   suppressWarnings(print(p1))
 
    if (Save_pdf) ggsave(p1, file='Females_captures.pdf',
                             device='pdf', width=10, height=10, useDingbats=FALSE)
