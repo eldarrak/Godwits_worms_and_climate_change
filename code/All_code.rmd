@@ -1035,7 +1035,7 @@ Females_weight_gain_before<-predict(lm(Stayover~Yr, data=Stayovers), newdata=dat
 Females_average_survival<-approx(x=Estimates_females$Female_weight_cov,
                                  y = Estimates_females$estimate, Females_weight_gain_before)$y
 
-contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=round(Females_average_survival,2),
+contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=Females_average_survival,
         lwd=3, col=grey(0.1), labels=round(Females_average_survival,2), labcex=1)
 contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=c(0.8, 0.85, 0.95), col=grey(0.5), labcex=1)
 
