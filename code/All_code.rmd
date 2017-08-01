@@ -287,7 +287,7 @@ if (Run_everything) {
 ### 2.5 Look at the output
 ```{r results='hide'}
 print(migration_model)
-Arrivals<-data.frame(Yr=unique(sites_years_dates$Year), 
+Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real), 
                      arrival=migration_model$BUGSoutput$mean$T_0k,
                      sigma=migration_model$BUGSoutput$mean$sigma)
 write.csv(Arrivals, file="./results/Arrivals_migration_model.csv", row.names=F)
