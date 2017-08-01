@@ -212,7 +212,7 @@ model {
 	  site_i[Site[Obs]]+Offset[Obs]-((Date[Obs]-
 	  T_0k[Year[Obs]])^2)/(2*sigma[Year[Obs]]^2)-
 	  0.9189385-log(sigma[Year[Obs]])
-    }	
+   }	
     #Priors
     for (k in 1:nYears) {
        total_k_src[k] ~ dnorm(0, 0.10)
@@ -245,9 +245,9 @@ Data<-list('nObs'=nrow(sites_years_dates),
            'nSites'=length(unique(sites_years_dates$Site)),
            'Year'=as.numeric(as.factor(sites_years_dates$Year)),
            'Site'=as.numeric(as.factor(sites_years_dates$Site)),
-           'Date'=sites_years_dates$yday,
-           'Offset'=log(sites_years_dates$Duration),
-           'Y'=sites_years_dates$north)
+           'Date'=sites_years_dates$Date,
+           'Offset'=sites_years_dates$Offset,
+           'Y'=sites_years_dates$Y)
 nSites=length(unique(sites_years_dates$Site))
 nYears=length(unique(sites_years_dates$Year))
 inits=function() {list(
