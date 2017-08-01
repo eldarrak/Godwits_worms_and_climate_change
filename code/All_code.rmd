@@ -66,6 +66,7 @@ library(raster)
 library(rgdal)
 library(maptools)
 library(maps)
+library(RCurl)
 ```
 Download taimyrensis bar-trailed godwit [(_Limosa lapponica taymyrensis_) range](#lappo) from this GitHub repo
 ```{r}
@@ -77,8 +78,12 @@ if (Use_local_data) {
 ```
 Download and read in R all [snow data from NOAA](#brown-robinson)
 ```{r cache=TRUE} 
-download.file('ftp://data.ncdc.noaa.gov/cdr/snowcover/nhsce_v01r01_19661004_20160905.nc',
-               destfile='snow.nc', method="internal", mode="wb")
+# first we get filename of the latest file
+Page<-getURL('https://www.ncei.noaa.gov/data/snow-cover-extent/access/',ssl.verifypeer = FALSE, dirlistonly = TRUE, ftp.use.epsv = FALSE)
+filename<-paste0('https://www.ncei.noaa.gov/data/snow-cover-extent/access/nhsce_v01r01_19661004_' , substr(strsplit(Page, 'nhsce_v01r01_19661004_')[[1]][2], start=1, stop=11))
+download.file(filename, destfile='snow.nc', mode="wb")
+               destfile='snow.nc')
+			   , method="internal", mode="wb")
 dat <- nc_open('snow.nc')
 t <- ncvar_get(dat,'time') ## "days since 1966-10-03"
 z <- ncvar_get(dat,'snow_cover_extent')
@@ -136,14 +141,19 @@ plot(Grid_centers_lon_lat[Selected_Points_near_field_station,], col=Colors[3], p
 ### 1.5 Extract first date of 50% snowmelt
 ```{r}
 Res<-c()
-   for(i in 1982:2016) {
+   for(i in 1982:2017) {
         ind <- which(as.numeric(format(date, "%Y"))==i &
 	               as.numeric(format(as.POSIXct(date), format='%m'))<8) 
         M<-snow@data@values[Selected_Points,ind]
         M_Southern<-snow@data@values[Selected_Points_near_field_station,ind]
 	    # we now want to get last point with non zero snow coverage
-		Mean_all<-mean(as.numeric(format(c(date[ind][
-		               apply(M, 1, FUN=function(x) which(x==0)[1])-1]), '%j')))
+		Last_snow_date<-as.numeric(format(c(date[ind][
+		               apply(M, 1, FUN=function(x) which(x==0)[1])-1]), '%j'))
+########################
+# temporary addition	
+        Last_snow_date[is.na(Last_snow_date)]<-max(Last_snow_date, na.rm=TRUE)+7
+########################		
+		Mean_all<-mean(Last_snow_date)
 		Mean_Southern<-mean(as.numeric(format(date[ind][
 		               apply(M_Southern, 1, FUN=function(x) which(x==0)[1])-1], '%j')))
 		Res<-rbind(Res, cbind(i, Mean_all, Mean_Southern))
