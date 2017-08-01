@@ -141,19 +141,14 @@ plot(Grid_centers_lon_lat[Selected_Points_near_field_station,], col=Colors[3], p
 ### 1.5 Extract first date of 50% snowmelt
 ```{r}
 Res<-c()
-   for(i in 1982:2017) {
+   for(i in 1982:2016) {
         ind <- which(as.numeric(format(date, "%Y"))==i &
 	               as.numeric(format(as.POSIXct(date), format='%m'))<8) 
         M<-snow@data@values[Selected_Points,ind]
         M_Southern<-snow@data@values[Selected_Points_near_field_station,ind]
 	    # we now want to get last point with non zero snow coverage
-		Last_snow_date<-as.numeric(format(c(date[ind][
-		               apply(M, 1, FUN=function(x) which(x==0)[1])-1]), '%j'))
-########################
-# temporary addition	
-        Last_snow_date[is.na(Last_snow_date)]<-max(Last_snow_date, na.rm=TRUE)+7
-########################		
-		Mean_all<-mean(Last_snow_date)
+		Mean_all<-mean(as.numeric(format(c(date[ind][
+		               apply(M, 1, FUN=function(x) which(x==0)[1])-1]), '%j')))
 		Mean_Southern<-mean(as.numeric(format(date[ind][
 		               apply(M_Southern, 1, FUN=function(x) which(x==0)[1])-1], '%j')))
 		Res<-rbind(Res, cbind(i, Mean_all, Mean_Southern))
