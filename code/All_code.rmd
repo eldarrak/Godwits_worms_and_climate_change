@@ -791,7 +791,7 @@ jags.data<-list(y=y.matrix, T=length(Years), S=length(Areas), exp.lam=exp.lam)
    
 # initials
 inits<-function() {list(
-        N.est=matrix(ncol=6, nrow=14, c(runif(6, 0, 15000), rep(NA, 6*14-6)), byrow=TRUE),
+        N.est=matrix(ncol=6, nrow=15, c(runif(6, 0, 15000), rep(NA, 6*15-6)), byrow=TRUE),
         mean.lambda=runif(1, 0.5,1.5),
         r=runif(6,0,10))}
 jags.params=c("n_total", "mean.lambda", "r")
@@ -817,7 +817,7 @@ Predicted_densities<-as.data.frame(cbind(Years,
       t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
       FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
 names(Predicted_densities)[2:4]<-c("lcl", "median","ucl")
-plot(median~Years, data=Predicted_densities, ylim=range(Predicted_densities[,2:4]),
+plot(median~Years, data=Predicted_densities, ylim=c(7000, 27000),
      type='n', las=1, ylab='')
 Colors<-colorRampPalette(c("white", "#0072B2"))
 polygon(x=c(Predicted_densities$Years, rev(Predicted_densities$Years)),
