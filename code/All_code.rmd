@@ -861,13 +861,13 @@ names(Arr_Wadden)[2]<-'yday'
 
 ### 6.2 Estimate linear slopes of phenological events in time
 ```{r}
-summary(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2014))))
-summary(lm(yday~Yr+Region, data=Tipula))
-summary(lm(yday~Yr+Region, data=Nests))
+summary(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2016))))
+summary(lm(yday~Yr, data=subset(Tipula, Region =='South')))
+summary(lm(yday~Yr, data=subset(Nests, Region =='South')))
 summary(lm(yday~Yr, data=Arrivals_Khat))
 summary(lm(yday~Yr, data=Arr_Wadden))
 # stayovers
-Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
+Arrivals_Khat$Departure<-Arrivals_Khat$yday-5.5
 Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
 Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
 summary(lm(Stayover~Yr, data=Stayovers))
