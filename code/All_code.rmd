@@ -880,7 +880,7 @@ summary(lm(Stayover~I(Yr/20), data=Stayovers))
 if (Save_pdf) pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
 par(mar=c(4,4,2,6))
 # snowmelt
-plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2015),axes=FALSE, ylab='')
+plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2016),axes=FALSE, ylab='')
 axis(1)
 box()
 Snow<-subset(Snow, Yr %in% c(1992:2016))
