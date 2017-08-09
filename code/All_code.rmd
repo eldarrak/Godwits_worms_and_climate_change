@@ -82,8 +82,6 @@ Download and read in R all [snow data from NOAA](#brown-robinson)
 Page<-getURL('https://www.ncei.noaa.gov/data/snow-cover-extent/access/',ssl.verifypeer = FALSE, dirlistonly = TRUE, ftp.use.epsv = FALSE)
 filename<-paste0('https://www.ncei.noaa.gov/data/snow-cover-extent/access/nhsce_v01r01_19661004_' , substr(strsplit(Page, 'nhsce_v01r01_19661004_')[[1]][2], start=1, stop=11))
 download.file(filename, destfile='snow.nc', mode="wb")
-               destfile='snow.nc')
-			   , method="internal", mode="wb")
 dat <- nc_open('snow.nc')
 t <- ncvar_get(dat,'time') ## "days since 1966-10-03"
 z <- ncvar_get(dat,'snow_cover_extent')
@@ -141,7 +139,7 @@ plot(Grid_centers_lon_lat[Selected_Points_near_field_station,], col=Colors[3], p
 ### 1.5 Extract first date of 50% snowmelt
 ```{r}
 Res<-c()
-   for(i in 1982:2016) {
+   for(i in 1982:2017) {
         ind <- which(as.numeric(format(date, "%Y"))==i &
 	               as.numeric(format(as.POSIXct(date), format='%m'))<8) 
         M<-snow@data@values[Selected_Points,ind]
@@ -159,7 +157,7 @@ names(Res)<-c('Yr', 'jdate50', 'jdate50_south')
 write.csv(Res, file='./results/Snow_remote.csv', row.names=FALSE)
 
 plot(jdate50~Yr, data=Res, pch=19, col=Colors[2], ylim=range(c(Res[,2], Res[,3])), las=1, xlab='Year', cex=2)
-summary(lm(jdate50~Yr, data=subset(Res, Yr>1995)))
+summary(lm(jdate50~Yr, data=subset(Res, Yr>1995 & Yr<2017)))
 ```
 
 ### 1.6 Comparison of remote sensing data with ground observations
