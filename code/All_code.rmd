@@ -291,9 +291,260 @@ Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real),
 write.csv(Arrivals, file="./results/Arrivals_migration_model.csv", row.names=F)
 ```
 
-## 3. Refuelling rates and their relationship with lugworm abundance
 
-### 3.1 Estimate yearly arrival mass from Castricum data
+## 3. Casuality in phenological data with structural equations modelling
+
+### 3.1 Load packages and data
+
+Here we load **arrival time** estimated in 2.5 data on lugworm densities in the Dutch Wadden Sea.
+```{r}
+library(R2jags)
+   Arrivals_WZ<-read.csv('./results/Arrivals_migration_model.csv')
+   Snowmelt<-read.csv('./results/Snow_remote.csv', as.is=TRUE)
+      
+if (Use_local_data) {
+   # read breeding data
+   Nests<-read.csv('./data/Nests.csv', as.is=TRUE)
+   # read crane flies
+   Tipula<-read.csv('./data/Tipula.csv', as.is=TRUE)
+   # read arrivals to Khatanga
+   Arr_Taimyr<-read.csv('./data/Arrivals_Khat.csv', as.is=TRUE)
+} else {
+   # read breeding data
+   Nests<-read.csv('https://git.io/vXu3y', as.is=TRUE)
+   # read crane flies
+   Tipula<-read.csv('https://git.io/vXu3x', as.is=TRUE)
+   # read arrivals to Khatanga
+   Arr_Taimyr<-read.csv('https://git.io/vXusf', as.is=TRUE)
+}
+```
+Merge data
+
+```{r}
+tmp<-merge(Arrivals_WZ[,1:2], Snowmelt[,1:2], all=TRUE)
+names(tmp)[2:3]<-c('Arrivals_WZ', 'Snowmelt')
+tmp<-merge(tmp, Arr_Taimyr[,c(1,3)], all=TRUE)
+names(tmp)[4]<-'Arr_T'
+
+tmp<-merge(tmp, subset(Tipula, Region=='South', select=c('Yr', 'yday')), all=TRUE)
+names(tmp)[5]<-'Tipula'
+
+Data_all<-subset(tmp, Yr>=1992)
+
+Nests<-subset(Nests, Region=='South', select=c('Yr', 'yday'))
+Nests<-Nests[order(Nests$Yr),]
+
+Years2nests<-sapply(Nests$Yr, FUN=function(x) which(Data_all$Yr==x))
+
+```
+### 3.2 Formulate model
+```{r results='hide'}
+{
+sink("pathsimple.scaled.jags")		
+cat("
+model {
+# The model
+
+for (i in 1:length(time)) {
+Arr_WZ_exp[i] =  b1.1*time[i]
+Arr_WZ[i] ~ dnorm(Arr_WZ_exp[i], Arr_WZ_tau)
+
+Snowmelt_exp[i] =  b2.1*time[i]
+Snowmelt[i] ~ dnorm(Snowmelt_exp[i], Snowmelt_tau)
+
+Arr_T_exp[i] = b3.1*time[i] + b3.2*Snowmelt[i] + b3.3*Arr_WZ[i]
+Arr_T[i] ~ dnorm(Arr_T_exp[i], Arr_T_tau)
+
+Tipula_exp[i] = b4.1*time[i] + b4.2*Snowmelt[i] 
+Tipula[i] ~ dnorm(Tipula_exp[i], Tipula_tau)
+
+Breeding_exp[i] =  b5.1*time[i] + b5.2*Snowmelt[i] + b5.3 * Arr_T[i] + b5.4*Tipula[i]
+
+Breeding[i] ~ dnorm(Breeding_exp[i], Breeding_tau)
+
+# so I will just add another loop
+}
+
+for (nest in 1:length(Nests)) {
+Nests[nest]~dnorm(Breeding[Years2nests[nest]], Nests_tau)
+}
+
+## Priors
+b1.1 ~ dnorm(0,0.00001);
+
+Arr_WZ_tau = pow(Arr_WZ_sigma, -2)
+Arr_WZ_sigma ~ dnorm(0,1)T(0,)
+
+b2.0 ~ dnorm(0,0.00001); b2.1 ~ dnorm(0,0.00001)
+Snowmelt_tau = pow(Snowmelt_sigma, -2)
+Snowmelt_sigma  ~ dnorm(0,1)T(0,)
+
+b3.0 ~ dnorm(0,0.00001); b3.1 ~ dnorm(0,0.00001); b3.2 ~ dnorm(0,0.00001);b3.3 ~ dnorm(0,0.00001)
+Arr_T_tau = pow(Arr_T_sigma, -2)
+Arr_T_sigma ~ dnorm(0,1)T(0,)
+
+b4.0 ~ dnorm(0,0.00001); b4.1 ~ dnorm(0,0.00001); b4.2 ~ dnorm(0,0.00001)
+Tipula_tau = pow(Tipula_sigma, -2)
+Tipula_sigma ~ dnorm(0,1)T(0,)
+
+b5.0 ~ dnorm(0,0.00001); b5.1 ~ dnorm(0,0.00001); b5.2 ~ dnorm(0,0.00001); b5.3 ~ dnorm(0,0.00001); b5.4 ~ dnorm(0,0.00001);
+Breeding_tau = pow(Breeding_sigma, -2)
+Breeding_sigma ~ dnorm(0,1)T(0,)
+
+Nests_tau = pow(Nests_sigma, -2)
+Nests_sigma ~ dnorm(0,1)T(0,)
+}
+",fill=TRUE)
+sink()
+}
+```
+### 3.3 Prepare data and initial values
+Model does not have intercepts, so it is important to center data
+
+```{r}
+Data_cent<-list(Arr_WZ=scale(subset(Data_all, select=Arrivals_WZ, drop=TRUE), scale=FALSE)[,1],
+           Snowmelt=scale(subset(Data_all, select=Snowmelt, drop=TRUE), scale=FALSE)[,1],
+           Arr_T=scale(subset(Data_all, select=Arr_T, drop=TRUE), scale=FALSE)[,1],
+           Tipula=scale(subset(Data_all, select=Tipula, drop=TRUE), scale=FALSE)[,1],
+           Nests=scale(Nests[,2], scale=FALSE)[,1],
+		   Years2nests=Years2nests, 
+		   time=seq(-12, 12))
+
+Inits<-function() { 
+          list(
+               b1.1=runif(1,-1, 1),
+               b2.1=runif(1,-1, 1),
+               b3.1=runif(1,-1, 1),
+               b3.2=runif(1,-1, 1),
+               b3.3=runif(1,-1, 1),
+               b4.1=runif(1,-1, 1),
+               b4.2=runif(1,-1, 1),
+               b5.1=runif(1,-1, 1),
+               b5.2=runif(1,-1, 1),
+               b5.3=runif(1,-1, 1),
+               b5.4=runif(1,-1, 1),
+			   Arr_WZ_sigma=1,
+			   Snowmelt_sigma=1,
+			   Arr_T_sigma=1,
+			   Tipula_sigma=1,
+			   Breeding_sigma=1,
+			   Nests_sigma=1)
+}
+
+
+Parameters<-c('b1.1', 
+               'b2.1',
+			  'b3.1', 'b3.2', 'b3.3',
+			   'b4.1', 'b4.2',
+			  'b5.1', 'b5.2', 'b5.3', 'b5.4',
+			  'Arr_WZ_sigma', 'Snowmelt_sigma', 'Arr_T_sigma', 'Breeding_sigma', 'Nests_sigma')
+```
+### 3.4 Run the model
+```{r results='hide'}
+if (Run_everything) {
+   # following run takes ~ 4 minutes brt			  
+   phenology_SEM<-jags.parallel(data=Data_cent ,
+                  Inits, 
+                  parameters=Parameters, 
+                  "pathsimple.scaled.jags", 
+                  n.chains = 5, 
+                  n.thin   = 500, 
+                  n.iter   = 1000000,
+                  n.burnin = 100000)
+   saveRDS(phenology_SEM, file='./results/phenology_SEM.RDS')
+}
+phenology_SEM<-readRDS('./results/phenology_SEM.RDS')
+```
+
+### 3.5 Explore and save model results
+```{r results='hide'}
+print(phenology_SEM))
+
+Parameter.Index<-which(substr(names(phenology_SEM$BUGSoutput$sims.list),1,1)=='b')
+
+SEM_coefs<-cbind('b'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) mean(x)), 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))))
+print(SEM_coefs)
+
+write.csv(SEM_coefs, file='./results/SEM_coefs.csv')
+```
+
+## 4. Migration speed and stopover duration from satellite tracking data
+
+## 4.1 Download data
+```{r results='hide'}
+
+if (Use_local_data) {
+   # read breeding data
+   All_tracks<-read.csv('./data/barg_2016_tracks.csv', as.is=TRUE)
+} else {
+   All_tracks<-read.csv('https://git.io/v7gXj', as.is=TRUE)
+}
+All_tracks$Time<-as.POSIXct(All_tracks$Time, tz='GMT')
+```
+
+## 4.2 Estimate schedules
+```{r results='hide'}
+Individuals<-unique(All_tracks$ID)
+Schedules<-data.frame()
+
+for (i in 1:length(Individuals)) {
+   Track<-subset(All_tracks, ID==(Individuals[i]))
+   Year<-unique(as.numeric(format(Track$Time, format='%Y')))
+   New_time<-seq(min(Track$Time), max(Track$Time), by=60)
+   New_lon<-approx(x=Track$Time, y=Track$lon, xout=New_time)$y
+   New_lat<-approx(x=Track$Time, y=Track$lat, xout=New_time)$y
+   Schedules<-rbind(Schedules, data.frame(Bird_id= (Individuals[i]),
+                Dep_Mau=ifelse(New_lat[1]> 21.5, NA, New_time[which(New_lat>21.5)[1]]),
+				Arr_WZ=ifelse(New_lat[1]> 21.5, NA, New_time[which(New_lat>52.5)[1]]),
+				Dep_WZ=New_time[which(New_lon>10)[1]],
+				Arr_Tai= New_time[which(New_lon>80)[1]],
+    			year=Year))
+}
+
+Schedules[,2]<-as.POSIXct(Schedules[,2], tz="GMT", origin='1970-01-01')
+Schedules[,3]<-as.POSIXct(Schedules[,3], tz="GMT", origin='1970-01-01')
+Schedules$Migration_to_WZ<-as.numeric((difftime(Schedules[,3],Schedules[,2], units='days')))
+Schedules$Refuelling<-as.numeric((difftime(Schedules[,4],Schedules[,3], units='days')))
+Schedules$Migration_to_Tai<-as.numeric((difftime(Schedules[,5],Schedules[,4], units='days')))
+
+print(mean(Schedules$Migration_to_Tai)) # 5.16
+print(median(Schedules$Migration_to_Tai)) #5.72
+print(mean(Schedules$Migration_to_WZ, na.rm=TRUE)) # 3.78
+```
+
+## 4.3 Estimate stopovers
+```{r results='hide'}
+Periods_all<-c()
+for (i in 1:length(Individuals)) {
+   Track<-subset(All_tracks, ID==(Individuals[i]) & Time<as.POSIXct('2016/06/24'))
+   Year<-unique(as.numeric(format(Track$Time, format='%Y')))
+   Index_stationary<-rep(1, length=length(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)))
+   Index_stationary[which(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)>25)]<-0 # more then 25 km => movement
+   Starts<-unique(c(1, which(diff(Index_stationary)==1)+1))
+   Ends<-unique(c(which(diff(Index_stationary)==-1)+1, length(Index_stationary)))
+   Periods<-data.frame(Start_Index=Starts, End_Index=Ends, Start_time=Track$Time[Starts], End_time=Track$Time[Ends])
+   Periods$Duration<- (as.numeric(Periods$End_time)- as.numeric(Periods$Start_time))/3600/24 # in days
+   Periods<-Periods[Periods$Duration>1,]
+
+   Periods$Mean_lon<-sapply(1:nrow(Periods), FUN=function(x) mean(Track$lon[Periods$Start_Index[x]: Periods$End_Index[x]]))
+   Periods$Mean_lat<-sapply(1:nrow(Periods), FUN=function(x) mean(Track$lat[Periods$Start_Index[x]: Periods$End_Index[x]]))
+   Periods$Year= Year
+
+   # and now I want to exclude ones in the wintering, Wadden Sea or breeding grounds
+   Periods<-Periods[!(Periods$Mean_lat<21.5 | (Periods$Mean_lat>52.4 & Periods$Mean_lat<56 & Periods$Mean_lon > 4 & Periods$Mean_lon < 10) | Periods$Mean_lon > 80),]
+   if (nrow(Periods)>=1) {
+       Periods_all<-rbind(Periods_all, Periods)
+   }
+}
+ 
+print(mean(Periods_all$Duration)) # 1.8 days on average
+print(nrow(Periods_all)) # 6 stopovers for longer than 24 hours.
+print(length(which(Periods_all$Duration>2))) #only two stopover longer than 2 days.
+```
+
+## 5. Refuelling rates and their relationship with lugworm abundance
+
+### 5.1 Estimate yearly arrival mass from Castricum data
 ```{r}
 library(lme4)
 if (Use_local_data) {
@@ -330,7 +581,7 @@ Arrival_weights<-data.frame(Yr=as.numeric(levels(aggr_data_females$fYr)),
 write.csv(Arrival_weights, file='./results/Arrival_weights.csv', row.names=FALSE)
 ```
 
-### 3.2 Load packages and data
+### 5.2 Load packages and data
 Here we load **arrival time** estimated in 2.5 data on lugworm densities in the Dutch Wadden Sea.
 ```{r}
 library(R2jags)
@@ -353,7 +604,7 @@ Lugworms_vec<-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]
 
 ```
 
-### 3.3 Lugworm data validation
+### 5.3 Lugworm data validation
 While refuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey ([SIBES](https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea)) - large scale grid sampling of benthic fauna in the Wadden Sea ([Bijleveld et al. 2012](#bijleveld), [Compton et al. 2013](#compton)).  We used SIBES data from sampling stations within 500 meters from Terschelling coast (refuelling area) and from Balgzand for all available years (2008 - 2014). 
 ```{r}
 if (Use_local_data) {
@@ -365,7 +616,7 @@ print(cor.test(Lugworms_SIBES$Balgzand,Lugworms_SIBES$Terschelling))
 ```
 Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for refuelling conditions for godwits.
 
-### 3.4 Formulate model
+### 5.4 Formulate model
 ```{r results='hide'}
 {
 sink("fuelling_model.jags")
@@ -414,7 +665,7 @@ sink()
 }
 ```
 
-### 3.5 Prepare data and initial values
+### 5.5 Prepare data and initial values
 ```{r}
 Data=list(Wt=Data_to_model$Mass, Time=Data_to_model$yday,
           i2k=as.numeric(as.factor(Data_to_model$Yr)),
@@ -437,7 +688,7 @@ inits=function() {
 jags.params=c("Alpha_t", "sigma2_alpha", "sigma2_alpha_fem", "K_sat_m", "K_sat_f")
 ```
 
-### 3.6 Run the model
+### 5.6 Run the model
 ```{r results='hide'}
 if (Run_everything) {
    # following run takes ~ 2 minutes brt
@@ -449,7 +700,7 @@ if (Run_everything) {
 fuelling_model<-readRDS('./results/fuelling_model.RDS')
 ```
 
-### 3.7 Explore and save model results
+### 5.7 Explore and save model results
 ```{r results='hide'}
 print(fuelling_model)
 Years<-unique(as.numeric((Data_to_model$Yr)))
@@ -462,7 +713,7 @@ Fuelling_slopes<-data.frame(Yr=Years,
 write.csv(Fuelling_slopes, file='./results/Fuelling_slopes.csv', row.names=FALSE)
 ```
 
-### 3.8 Plot estimated refuelling slopes by lugworm abundance
+### 5.8 Plot estimated refuelling slopes by lugworm abundance
 ```{r fig.width=10, fig.height=5}
 
 if (Save_pdf) pdf('fueling rate.pdf', useDingbats=FALSE, width=10, height=10)
@@ -509,10 +760,10 @@ box()
 if (Save_pdf) dev.off()
 ```
 
-## 4. Departure fuel load effects on survival from capture-recapture data
+## 6. Departure fuel load effects on survival from capture-recapture data
 We used Cormack–Jolly–Seber (CJS) model ([Lebreton et al., 1992](#lebreton)) to model apparent survival independently from resighting probability. Set of nested models was estimated in program MARK ([White & Burnham, 1999](#white)) through RMark ([Laake, 2013](#laake)) interface.  To run model estimation with MARK or RMark you should first install program MARK from [here](http://www.phidot.org/software/mark/downloads).
 
-### 4.1 Load and combine data
+### 6.1 Load and combine data
 ```{r}
 library('RMark')
    #get arrivals to the Wadden Sea
@@ -578,7 +829,7 @@ names(Departure_Weight_gain)[2]<-'time'
 Departure_Weight_gain<-subset(Departure_Weight_gain, time>2001 & time<2016)
 ```
 
-## 4.2 Prepare data in RMark
+## 6.2 Prepare data in RMark
 ```{r}
 
 library('RMark')
@@ -615,7 +866,7 @@ p.time.plus.sex=list(formula=~time +SEX)
 cml=create.model.list("CJS")
 ```
 
-### 4.3 Run MARK model
+### 6.3 Run MARK model
 ```{r results='hide'}
 if (Run_everything) {
    Res<-mark.wrapper(cml, data=Godwit.data, ddl=Godwit.ddl, profile.int=F, delete=FALSE, brief=TRUE)
@@ -625,7 +876,7 @@ if (Run_everything) {
 }
 ```
 
-### 4.4 Median c-hat test in MARK
+### 6.4 Median c-hat test in MARK
 We now have to estimate potential overdispersion and correct for it. This possibility currently does not exist in RMark, so we export data to MARK and do test there. 
 ```{r results='hide'}
 export.MARK(Godwit.data, 'godwit_data', Res, replace=TRUE)
@@ -639,7 +890,7 @@ Res_adj<-adjust.chat(Res, chat=1.1186307)
 print(Res_adj)
 ```
 
-### 4.5 Prediction from the best model
+### 6.5 Prediction from the best model
 ```{r}
 Model<-Res_adj[[5]]
 Male_weight_pr<-Departure_Weight_gain$Weight_gain_predicted[Departure_Weight_gain$group=='m']
@@ -686,7 +937,7 @@ write.csv(Estimates_females, file='./results/female_survival_prediction.csv', ro
 write.csv(Estimates_males, file='./results/male_survival_prediction.csv', row.names=TRUE)
 ```
 
-### 4.6 Plot survival over departure fuel load
+### 6.6 Plot survival over departure fuel load
 ```{r fig.width=10, fig.height=5}
 if (Save_pdf) pdf('male_female_survival_over_fuel_load.pdf')
 
@@ -729,10 +980,10 @@ lines(lcl~Female_weight_cov, data=subset(Estimates_females, Female_weight_cov>=
 if (Save_pdf) dev.off()
 ```
 
-## 5. Population trends from winter counts in West Africa
+## 7. Population trends from winter counts in West Africa
 We modelled change in total population of godwits in state space modelled suggested by Kéry & Shcaub ([2012](#kery-schaub)), but with negative binomial error distribution.
 
-### 5.1 Load packages and data
+### 7.1 Load packages and data
 ```{r}
 library(R2jags)
 if (Use_local_data) {
@@ -748,7 +999,7 @@ for (i in 1:nrow(Counts)) {
 }
 ```
 
-### 5.2 Formulate model
+### 7.2 Formulate model
 ```{r results='hide'}
 {
 sink("winter_counts_model.jags")
@@ -780,7 +1031,7 @@ sink()
 }
 ```
 
-### 5.3 Priors and initial values
+### 7.3 Priors and initial values
 ```{r}
 exp.mean<-mean(as.double(y.matrix),na.rm=T)
 exp.lam <-1/exp.mean
@@ -795,7 +1046,7 @@ inits<-function() {list(
 jags.params=c("n_total", "mean.lambda", "r")
 ```
 
-### 5.4 Run the model
+### 7.4 Run the model
 ```{r results='hide'}
 if (Run_everything) {
    # this model runs for ~ 2 mins brt
@@ -807,7 +1058,7 @@ if (Run_everything) {
 Counts_model<-readRDS('./results/Mauritania_counts_model.RDS')
 ```
 
-### 5.5 Plot model results for panel C in Fig.1
+### 7.5 Plot model results for panel C in Fig.1
 ```{r fig.width=5, fig.height=5, results='hide'}
 print(Counts_model)
 if (Save_pdf) pdf("Mauritania_counts.pdf", 5, 5, useDingbats=FALSE)
@@ -825,9 +1076,9 @@ points(rowSums(y.matrix)~ Years, pch=21, bg='#0072B2', cex=2, col=NULL)
 if (Save_pdf) dev.off()
 ```
 
-## 6. Phenology plot (Fig. 1a)
+## 8. Phenology plot (Fig. 1a)
 
-### 6.1 Load data
+### 8.1 Load data
 ```{r}
    # read Snow
    Snow<-read.csv('./results/Snow_remote.csv', as.is=TRUE)
@@ -857,7 +1108,7 @@ Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
 names(Arr_Wadden)[2]<-'yday'
 ```
 
-### 6.2 Estimate linear slopes of phenological events in time
+### 8.2 Estimate linear slopes of phenological events in time
 ```{r}
 summary(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2016))))
 summary(lm(yday~Yr, data=subset(Tipula, Region =='South')))
@@ -873,7 +1124,7 @@ summary(lm(Stayover~Yr, data=Stayovers))
 summary(lm(Stayover~I(Yr/20), data=Stayovers))
 ```
 
-### 6.3 Plot the figure
+### 8.3 Plot the figure
 ```{r fig.width=5, fig.height=10}
 if (Save_pdf) pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
 par(mar=c(4,4,2,6))
@@ -928,9 +1179,9 @@ box()
 if (Save_pdf) dev.off()
 ```
 
-## 7. Stayover duration - lugworms - godwit survival (Fig. 2)
+## 9. Stayover duration - lugworms - godwit survival (Fig. 2)
 
-### 7.1 Load data
+### 9.1 Load data
 ```{r}
    fuelling_model<-readRDS('./results/fuelling_model.RDS')
    Estimates_females<-read.csv(file='./results/female_survival_prediction.csv')
@@ -948,7 +1199,7 @@ if (Use_local_data) {
    summary(lm(lugworms_ad~1, data=subset(Lugworms, Yr>1995)))
 ```
 
-### 7.2 Prepare data
+### 9.2 Prepare data
 ```{r}
    Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
    Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
@@ -978,7 +1229,7 @@ XY$Phi_females<-approx(x=Estimates_females$Female_weight_cov,
 
 ```
 
-### 7.3 Plot
+### 9.3 Plot
 ```{r fig.width=10, fig.height=10}
 
 if (Save_pdf) pdf(file='Figure 2_4 graphs.pdf', useDingbats=FALSE, width=10, height=10)
@@ -1080,9 +1331,9 @@ mtext(side=1, expression(paste( plain('Lugworm density (ind./m') ^
 if (Save_pdf) dev.off()
 ```
 
-## 8. Plot capture data with slopes (Extended data Figure 1 and 2)
+## 10. Plot capture data with slopes (Extended data Figure 1 and 2)
 
-## 8.1 Load data 
+## 10.1 Load data 
 ```{r}
    # a. get arrivals to the Wadden Sea
    Arrivals_WS<-read.csv('./results/Arrivals_migration_model.csv')
@@ -1099,7 +1350,7 @@ if (Use_local_data) {
 }
 ```
 
-## 8.2 Prepare data for plotting
+## 10.2 Prepare data for plotting
 ```{r}
    #names(Arrivals_WS)[2]<-'yday'
    Arrivals<-merge(Arrivals_WS, Arrival_weights)
@@ -1131,7 +1382,7 @@ if (Use_local_data) {
    Lwd<-1
 ```
 
-## 8.2 Plot figure for males
+## 10.3 Plot figure for males
 ```{r fig.width=10, fig.height=10}
    library(ggplot2)
    p<-ggplot(data = Capture_data_males, aes(x = yday, y = Mass)) +
@@ -1154,7 +1405,7 @@ if (Use_local_data) {
                         device='pdf', width=10, height=10, useDingbats=FALSE)
 ```
 
-## 8.3 Plot figure for females
+## 10.4 Plot figure for females
 ```{r fig.width=10, fig.height=10}
    p1<-ggplot(data = Capture_data_females, aes(x = yday, y = Mass)) +
    geom_point(col='#fdb194', data=subset(Capture_data_females, Site!='Castricum')) +
@@ -1176,7 +1427,7 @@ if (Use_local_data) {
                             device='pdf', width=10, height=10, useDingbats=FALSE)
 ```
 
-## 8.4 Plot legend
+## 10.5 Plot legend
 ```{r fig.width=2, fig.height=2}
    Leg_frame<-data.frame(x=c(-1, 1), y=c(-1, 1))
    X_labels<--0.85
