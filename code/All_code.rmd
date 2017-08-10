@@ -41,6 +41,7 @@ if (Use_local_data) if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE
    download.file('https://git.io/vXgZG', destfile='./results/migration_model.RDS', mode='wb')
    download.file('https://git.io/vXED0', destfile='./results/Arrivals_migration_model.csv')
    download.file('https://git.io/vXgvv', destfile='./results/fuelling_model.RDS',mode='wb')
+   download.file('https://git.io/v7D8z', destfile='./results/phenology_SEM.RDS',mode='wb')
    download.file('https://git.io/vXEbX', destfile='./results/Arrival_weights.csv')
    download.file('https://git.io/vXEb5', destfile='./results/Fuelling_slopes.csv')
    download.file('https://git.io/vXueC', destfile='./results/survival_result.RDS',mode='wb')
@@ -48,7 +49,6 @@ if (Use_local_data) if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE
    download.file('https://git.io/vXgvd', destfile='./results/female_survival_prediction.csv')
 }
 ```
-
 ### 0.3 Plot on screen or save plots as pdfs?
 Parts of this code take time to run, so if you want to go through examples fast you can specify
 ```{r}
