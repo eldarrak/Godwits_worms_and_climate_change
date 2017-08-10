@@ -457,8 +457,8 @@ Years<-unique(as.numeric((Data_to_model$Yr)))
 Fuelling_slopes<-data.frame(Yr=Years,
          Fuelling_slope_males=fuelling_model$BUGSoutput$mean$Alpha_t[,1],
          Fuelling_slope_females=fuelling_model$BUGSoutput$mean$Alpha_t[,2],
-         Fuelling_slope_males_predicted=11*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_m+Lugworms_vec),
-         Fuelling_slope_females_predicted=13.4*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_f+Lugworms_vec))
+         Fuelling_slope_males_predicted=11*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_m[1]+Lugworms_vec),
+         Fuelling_slope_females_predicted=13.4*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_f[1]+Lugworms_vec))
 write.csv(Fuelling_slopes, file='./results/Fuelling_slopes.csv', row.names=FALSE)
 ```
 
@@ -881,7 +881,7 @@ par(mar=c(4,4,2,6))
 plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2016),axes=FALSE, ylab='')
 axis(1)
 box()
-Snow<-subset(Snow, Yr %in% c(1992:2016))
+Snow<-subset(Snow, Yr %in% c(1992:2017))
 polygon(y=c(Snow$yday, rep(200, length(Snow$yday))), 
         x=c(Snow$Yr, rev(Snow$Yr)),  cex=4, 
 	bg=grey(0.5), lwd=2, col='#bae4bc', border='#7bccc4')
@@ -898,29 +898,25 @@ text(y=152, x=2019, '1 June')
 text(y=182, x=2019, '1 July')
 par(xpd=FALSE)
 # snow
-abline(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2015))), col='#7bccc4', lwd=2)
+abline(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2016))), col='#7bccc4', lwd=2)
 # tipula#8783ce
-Tipula_color<-'#cbce83'
-points(yday~Yr, data=Tipula, pch=21, bg=Tipula_color, lwd=1, cex=2, col=NULL )
-lm_tipula<-lm(yday~Yr+Region, data=Tipula)
-lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
-              c(1992,2016),lwd=2, col=Tipula_color)
-lines(predict(lm_tipula, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
-              c((2004-0.5):(2007+0.5)), lwd=2, col=Tipula_color, lty=2)
+Tipula_color<-'#8783CE'
+points(yday~Yr, data=subset(Tipula, Region=='South'), pch=21, bg=Tipula_color, lwd=1, cex=2, col=NULL )
+lm_tipula<-lm(yday~Yr, data=subset(Tipula, Region=='South'))
+lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2017)))~
+              c(1992,2017),lwd=2, col=Tipula_color)
 # nests
-points(yday~Yr, data=Nests, pch=21, cex=2,  lwd=1, bg='#cc79a7', col=NULL)
-lm_nests<-lm(yday~Yr+Region, data=Nests)
-lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016), Region='South'))~
-              c(1992,2016), lwd=2, col='#cc79a7')
-lines(predict(lm_nests, newdata=data.frame(Yr=c((2004-0.5):(2007+0.5)), Region='North'))~
-              c((2004-0.5):(2007+0.5)), lwd=2, col='#cc79a7', lty=2)
+points(yday~Yr, data=subset(Nests, Region=='South'), pch=21, cex=2,  lwd=1, bg='#cc79a7', col=NULL)
+lm_nests<-lm(yday~Yr, data=subset(Nests, Region=='South'))
+lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016)))~
+              c(1992,2017), lwd=2, col='#cc79a7')
 # Khat arrivals
 Khat_arr_color<-'#cbce83'
 abline(lm(yday~Yr, data=Arrivals_Khat),col=Khat_arr_color, lwd=2)
-points(yday~Yr, data=Arrivals_Khat,  pch=21, cex=2, bg=Khat_arr_color, lwd=1, col=NULL)
+points(yday~Yr, data=subset(Arrivals_Khat, Yr>=1993),  pch=21, cex=2, bg=Khat_arr_color, lwd=1, col=NULL)
 # Wadden arrivals..
 Width=0.25
-Arrivals_Khat$Departure<-Arrivals_Khat$yday-4
+Arrivals_Khat$Departure<-Arrivals_Khat$yday-5.5
 Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
 Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
 rect(xleft=Stayovers$Yr-Width, xright=Stayovers$Yr+Width, 
@@ -963,7 +959,7 @@ if (Use_local_data) {
 ```
 Create grid for prediction
 ```{r}
-XY<-expand.grid(Lugworm_density=seq(5,33, 0.1), stayover=seq(17,37, 0.1))
+XY<-expand.grid(Lugworm_density=seq(5,30, 0.05), stayover=seq(17,37, 0.05))
 ```
 now for every of these points I get estimate of fuelling slope, that I will combine with the stayover
 ```{r}
@@ -995,7 +991,7 @@ Early_color<-'#6FC067'
 
 #-------------------------------------
 # Panel a - stayover change over years
-plot(Stayovers$Stayover~Stayovers$Yr, type='n', ylim=c(17, 37),  ylab='',
+plot(Stayovers$Stayover~Stayovers$Yr, type='n', ylim=c(17, 36),  ylab='',
      las=1, xlim=c(1993, 2016), xlab='', cex=1.5, axes=F, yaxs='i')
 axis(1, cex.axis=1.5)
 
@@ -1039,7 +1035,7 @@ Colors<-colorRampPalette(c("#b2182b",
 par(mar=c(3, 2,4,3))
 library(fields)
 image.plot(as.image(x=XY[1:2], Z=XY$Phi_females, nx=200, ny=200), 
-          col=Colors(256), xlab='', ylab='', las=1, ylim=c(17,37),
+          col=Colors(256), xlab='', ylab='', las=1, ylim=c(17,36), xlim=c(5,30),
 	  legend.mar=7, cex.axis=1.5, legend.cex=1.5)
 Females_slope_average<-approx(x=XY$Lugworm_density, y=XY$Female_Median_Slope, mean(Stayovers$lugworms_ad, na.rm=TRUE) )$y
 Females_weight_gain_before<-predict(lm(Stayover~Yr, data=Stayovers), newdata=data.frame(Yr=c(1995))) *
@@ -1049,10 +1045,10 @@ Females_average_survival<-approx(x=Estimates_females$Female_weight_cov,
 
 contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=Females_average_survival,
         lwd=3, col=grey(0.1), labels=round(Females_average_survival,2), labcex=1)
-contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=c(0.8, 0.85, 0.95), col=grey(0.5), labcex=1)
+contour(as.image(x=XY[1:2], Z=XY$Phi_females),add=T, levels=c(0.8, 0.85, 0.9, 0.95), col=grey(0.5), labcex=1)
 
-abline(h=predict(lm(Stayover~Yr, data=Stayovers), newdata=data.frame(Yr=c(2015))), lwd=2, col=Late_color)
-abline(v=25.1, col=Late_color, lwd=2)
+abline(h=predict(lm(Stayover~Yr, data=Stayovers), newdata=data.frame(Yr=c(2017))), lwd=2, col=Late_color)
+abline(v=22.9, col=Late_color, lwd=2)
 abline(h=predict(lm(Stayover~Yr, data=Stayovers), newdata=data.frame(Yr=c(1995))), lwd=2, col=Early_color)
 abline(v=mean(Stayovers$lugworms_ad, na.rm=TRUE), col=Early_color, lwd=2)
 
@@ -1070,11 +1066,11 @@ par(mar=c(15,2,0,5 ))
 
 # histogram of lugworm abundance
 hist(Stayovers$lugworms_ad, main='', xlab='', ylab='n years', las=1, col='#6FC067',
-     axes=FALSE, xaxs='i', xlim=range(XY[1]))
+     axes=FALSE, xaxs='i', xlim=c(5, 30))
 axis(2, cex.axis=1.5, las=1)
 axis(3, labels=FALSE)
 abline(v=mean(Stayovers$lugworms_ad, na.rm=TRUE), lwd=2, col=Early_color)
-abline(v=25.1,  lwd=2, col=Late_color)
+abline(v=22.9,  lwd=2, col=Late_color)
 box()
 mtext(side=2, 'n Years', line=3, cex=1.5)
 mtext(side=1, expression(paste( plain('Lugworm density (ind./m') ^ 
