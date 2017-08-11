@@ -456,13 +456,11 @@ phenology_SEM<-readRDS('./results/phenology_SEM.RDS')
 
 ### 3.5 Explore and save model results
 ```{r results='hide'}
-print(phenology_SEM))
+print(phenology_SEM)
 
 Parameter.Index<-which(substr(names(phenology_SEM$BUGSoutput$sims.list),1,1)=='b')
-
 SEM_coefs<-cbind('b'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) mean(x)), 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))))
 print(SEM_coefs)
-
 write.csv(SEM_coefs, file='./results/SEM_coefs.csv')
 ```
 
@@ -470,7 +468,6 @@ write.csv(SEM_coefs, file='./results/SEM_coefs.csv')
 
 ## 4.1 Download data
 ```{r results='hide'}
-
 if (Use_local_data) {
    # read breeding data
    All_tracks<-read.csv('./data/barg_2016_tracks.csv', as.is=TRUE)
