@@ -281,7 +281,7 @@ if (Run_everything) {
 ```
 
 ### 2.5 Look at the output
-```{r results='hide'}
+```{r}
 print(migration_model)
 Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real), 
                      arrival=migration_model$BUGSoutput$mean$T_0k,
@@ -455,7 +455,7 @@ phenology_SEM<-readRDS('./results/phenology_SEM.RDS')
 ```
 
 ### 3.5 Explore and save model results
-```{r results='hide'}
+```{r}
 print(phenology_SEM)
 
 Parameter.Index<-which(substr(names(phenology_SEM$BUGSoutput$sims.list),1,1)=='b')
@@ -466,7 +466,7 @@ write.csv(SEM_coefs, file='./results/SEM_coefs.csv')
 
 ## 4. Migration speed and stopover duration from satellite tracking data
 
-## 4.1 Download data
+### 4.1 Download data
 ```{r results='hide'}
 if (Use_local_data) {
    # read breeding data
@@ -477,8 +477,8 @@ if (Use_local_data) {
 All_tracks$Time<-as.POSIXct(All_tracks$Time, tz='GMT')
 ```
 
-## 4.2 Estimate schedules
-```{r results='hide'}
+### 4.2 Estimate schedules
+```{r}
 Individuals<-unique(All_tracks$ID)
 Schedules<-data.frame()
 
@@ -507,8 +507,8 @@ print(median(Schedules$Migration_to_Tai)) #5.72
 print(mean(Schedules$Migration_to_WZ, na.rm=TRUE)) # 3.78
 ```
 
-## 4.3 Estimate stopovers
-```{r results='hide'}
+### 4.3 Estimate stopovers
+```{r}
 Periods_all<-c()
 for (i in 1:length(Individuals)) {
    Track<-subset(All_tracks, ID==(Individuals[i]) & Time<as.POSIXct('2016/06/24'))
@@ -696,7 +696,7 @@ fuelling_model<-readRDS('./results/fuelling_model.RDS')
 ```
 
 ### 5.7 Explore and save model results
-```{r results='hide'}
+```{r}
 print(fuelling_model)
 Years<-unique(as.numeric((Data_to_model$Yr)))
 # save estimated slopes for survival model
