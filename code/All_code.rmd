@@ -15,7 +15,7 @@ Run_everything=FALSE # Change to TRUE if you want run everything by your compute
 ```
 
 ### 0.2 Online or local data?
-This script can operate online or local data. If `Use_local_data` set to TRUE working directory expected to have folders `data`. If `Run_everything` set to TRUE `results` directory will be created and all results will be saved there.
+This script can operate with online or local data. If `Use_local_data` set to TRUE working directory expected to have folders `data`. If `Run_everything` set to TRUE `results` directory will be created and all results will be saved there.
 ```{r}
 Use_local_data=FALSE # Change to TRUE if you want to use local data
 ```
@@ -33,10 +33,6 @@ if (Use_local_data) {
    if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data directory not found!')
 } else {
    if (!'results' %in% list.dirs(full.names=FALSE, recursive=FALSE)) dir.create('results')
-}
-if (Use_local_data) if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) { 
-   stop('data directory not found') 
-} else {
    download.file('https://git.io/vXAZ1', destfile='./results/Snow_remote.csv')
    download.file('https://git.io/vXgZG', destfile='./results/migration_model.RDS', mode='wb')
    download.file('https://git.io/vXED0', destfile='./results/Arrivals_migration_model.csv')
@@ -48,6 +44,8 @@ if (Use_local_data) if (!'data' %in% list.dirs(full.names=FALSE, recursive=FALSE
    download.file('https://git.io/vXuqH', destfile='./results/Mauritania_counts_model.RDS',mode='wb')
    download.file('https://git.io/vXgvd', destfile='./results/female_survival_prediction.csv')
 }
+if (Use_local_data & !'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data directory not found') 
+
 ```
 ### 0.3 Plot on screen or save plots as pdfs?
 Parts of this code take time to run, so if you want to go through examples fast you can specify
