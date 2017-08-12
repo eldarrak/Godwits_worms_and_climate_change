@@ -1238,7 +1238,7 @@ Early_color<-'#6FC067'
 #-------------------------------------
 # Panel a - stayover change over years
 plot(Stayovers$Stayover~Stayovers$Yr, type='n', ylim=c(17, 36),  ylab='',
-     las=1, xlim=c(1993, 2016), xlab='', cex=1.5, axes=F, yaxs='i')
+     las=1, xlim=c(1992, 2018), xlab='', cex=1.5, axes=F, yaxs='i')
 axis(1, cex.axis=1.5)
 
 par(xpd=TRUE)
@@ -1251,8 +1251,8 @@ abline(lm(Stayover~Yr, data=Stayovers), lwd=2)
 
 #Horizontal lines with specific colors
 abline(h=predict(lm(Stayover~Yr, data=Stayovers), 
-                 newdata=data.frame(Yr=c(2015))), lwd=2, col=Late_color)
-abline(v=2015, lwd=2, col=Late_color)
+                 newdata=data.frame(Yr=c(2017))), lwd=2, col=Late_color)
+abline(v=2017, lwd=2, col=Late_color)
 
 abline(h=predict(lm(Stayover~Yr, data=Stayovers),
                  newdata=data.frame(Yr=c(1995))), lwd=2, col=Early_color)
