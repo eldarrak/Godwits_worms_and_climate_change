@@ -1362,7 +1362,7 @@ if (Use_local_data) {
                                         Arrivals$Fuelling_slope_females*Arrivals$arrival
       
    Departure_Wadden<-Arrival_Taimyr[,c(1,3)]
-   Departure_Wadden$Departure<-Departure_Wadden$yday-4
+   Departure_Wadden$Departure<-Departure_Wadden$yday-5.5
    Departure_Wadden<-Departure_Wadden[,-2]
   
    Arrivals<-merge(Arrivals,Departure_Wadden, all.x=TRUE )
