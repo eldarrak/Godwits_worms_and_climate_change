@@ -77,8 +77,10 @@ if (Use_local_data) {
 Download and read in R all [snow data from NOAA](#brown-robinson)
 ```{r cache=TRUE} 
 # first we get filename of the latest file
-Page<-getURL('https://www.ncei.noaa.gov/data/snow-cover-extent/access/',ssl.verifypeer = FALSE, dirlistonly = TRUE, ftp.use.epsv = FALSE)
-filename<-paste0('https://www.ncei.noaa.gov/data/snow-cover-extent/access/nhsce_v01r01_19661004_' , substr(strsplit(Page, 'nhsce_v01r01_19661004_')[[1]][2], start=1, stop=11))
+Page<-getURL('https://www.ncei.noaa.gov/data/snow-cover-extent/access/',
+             ssl.verifypeer = FALSE, dirlistonly = TRUE, ftp.use.epsv = FALSE)
+filename<-paste0('https://www.ncei.noaa.gov/data/snow-cover-extent/access/nhsce_v01r01_19661004_',
+             substr(strsplit(Page, 'nhsce_v01r01_19661004_')[[1]][2], start=1, stop=11))
 download.file(filename, destfile='snow.nc', mode="wb")
 dat <- nc_open('snow.nc')
 t <- ncvar_get(dat,'time') ## "days since 1966-10-03"
@@ -298,8 +300,10 @@ if (Run_everything) {
 ```{r}
 print(migration_model)
 
-cat('Bayesian p-value = ', mean(migration_model$BUGSoutput$sims.list$fit.new<migration_model$BUGSoutput$sims.list$fit), '\n')
-cat('lack of fit ratio = ', mean(migration_model$BUGSoutput$sims.list$fit)/mean(migration_model$BUGSoutput$sims.list$fit.new), '\n')
+cat('Bayesian p-value = ', 
+    mean(migration_model$BUGSoutput$sims.list$fit.new<migration_model$BUGSoutput$sims.list$fit), '\n')
+cat('lack of fit ratio = ',
+    mean(migration_model$BUGSoutput$sims.list$fit)/mean(migration_model$BUGSoutput$sims.list$fit.new), '\n')
 
 Arrivals<-data.frame(Yr=unique(sites_years_dates$Year_real), 
                      arrival=migration_model$BUGSoutput$mean$T_0k,
@@ -403,7 +407,8 @@ b4.0 ~ dnorm(0,0.00001); b4.1 ~ dnorm(0,0.00001); b4.2 ~ dnorm(0,0.00001)
 Tipula_tau = pow(Tipula_sigma, -2)
 Tipula_sigma ~ dnorm(0,1)T(0,)
 
-b5.0 ~ dnorm(0,0.00001); b5.1 ~ dnorm(0,0.00001); b5.2 ~ dnorm(0,0.00001); b5.3 ~ dnorm(0,0.00001); b5.4 ~ dnorm(0,0.00001);
+b5.0 ~ dnorm(0,0.00001); b5.1 ~ dnorm(0,0.00001); b5.2 ~ dnorm(0,0.00001); 
+b5.3 ~ dnorm(0,0.00001); b5.4 ~ dnorm(0,0.00001);
 Breeding_tau = pow(Breeding_sigma, -2)
 Breeding_sigma ~ dnorm(0,1)T(0,)
 
@@ -477,7 +482,8 @@ phenology_SEM<-readRDS('./results/phenology_SEM.RDS')
 print(phenology_SEM)
 
 Parameter.Index<-which(substr(names(phenology_SEM$BUGSoutput$sims.list),1,1)=='b')
-SEM_coefs<-cbind('b'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) mean(x)), 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))))
+SEM_coefs<-cbind('b'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) mean(x)),
+    'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))))
 print(SEM_coefs)
 write.csv(SEM_coefs, file='./results/SEM_coefs.csv')
 ```
@@ -532,19 +538,23 @@ for (i in 1:length(Individuals)) {
    Track<-subset(All_tracks, ID==(Individuals[i]) & Time<as.POSIXct('2016/06/24'))
    Year<-unique(as.numeric(format(Track$Time, format='%Y')))
    Index_stationary<-rep(1, length=length(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)))
-   Index_stationary[which(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)>25)]<-0 # more then 25 km => movement
+   Index_stationary[which(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)>25)]<-0#>25km=>movement
    Starts<-unique(c(1, which(diff(Index_stationary)==1)+1))
    Ends<-unique(c(which(diff(Index_stationary)==-1)+1, length(Index_stationary)))
    Periods<-data.frame(Start_Index=Starts, End_Index=Ends, Start_time=Track$Time[Starts], End_time=Track$Time[Ends])
    Periods$Duration<- (as.numeric(Periods$End_time)- as.numeric(Periods$Start_time))/3600/24 # in days
    Periods<-Periods[Periods$Duration>1,]
 
-   Periods$Mean_lon<-sapply(1:nrow(Periods), FUN=function(x) mean(Track$lon[Periods$Start_Index[x]: Periods$End_Index[x]]))
-   Periods$Mean_lat<-sapply(1:nrow(Periods), FUN=function(x) mean(Track$lat[Periods$Start_Index[x]: Periods$End_Index[x]]))
+   Periods$Mean_lon<-sapply(1:nrow(Periods), 
+               FUN=function(x) mean(Track$lon[Periods$Start_Index[x]: Periods$End_Index[x]]))
+   Periods$Mean_lat<-sapply(1:nrow(Periods), 
+               FUN=function(x) mean(Track$lat[Periods$Start_Index[x]: Periods$End_Index[x]]))
    Periods$Year= Year
 
    # and now I want to exclude ones in the wintering, Wadden Sea or breeding grounds
-   Periods<-Periods[!(Periods$Mean_lat<21.5 | (Periods$Mean_lat>52.4 & Periods$Mean_lat<56 & Periods$Mean_lon > 4 & Periods$Mean_lon < 10) | Periods$Mean_lon > 80),]
+   Periods<-Periods[!(Periods$Mean_lat<21.5 | 
+                  (Periods$Mean_lat>52.4 & Periods$Mean_lat<56 & Periods$Mean_lon > 4 & Periods$Mean_lon < 10) |
+				  Periods$Mean_lon > 80),]
    if (nrow(Periods)>=1) {
        Periods_all<-rbind(Periods_all, Periods)
    }
@@ -721,8 +731,10 @@ Years<-unique(as.numeric((Data_to_model$Yr)))
 Fuelling_slopes<-data.frame(Yr=Years,
          Fuelling_slope_males=fuelling_model$BUGSoutput$mean$Alpha_t[,1],
          Fuelling_slope_females=fuelling_model$BUGSoutput$mean$Alpha_t[,2],
-         Fuelling_slope_males_predicted=11*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_m[1]+Lugworms_vec),
-         Fuelling_slope_females_predicted=13.2*Lugworms_vec/(fuelling_model$BUGSoutput$mean$K_sat_f[1]+Lugworms_vec))
+         Fuelling_slope_males_predicted=11*Lugworms_vec/
+		                 (fuelling_model$BUGSoutput$mean$K_sat_m[1]+Lugworms_vec),
+         Fuelling_slope_females_predicted=13.2*Lugworms_vec/
+		                 (fuelling_model$BUGSoutput$mean$K_sat_f[1]+Lugworms_vec))
 write.csv(Fuelling_slopes, file='./results/Fuelling_slopes.csv', row.names=FALSE)
 ```
 
@@ -770,8 +782,10 @@ All_staging_data<-merge(merge(merge(Arrivals_WS[,1:2],
                         Arrival_weights), Fuelling_slopes),Departures_Wadden)
 All_staging_data$Stopover<-(All_staging_data$departure-All_staging_data$arrival)
 
-All_staging_data$log_fuelling_slope_females_st<-scale(log(All_staging_data$Fuelling_slope_females), center=TRUE, scale=FALSE)
-All_staging_data$log_fuelling_slope_males_st<-scale(log(All_staging_data$Fuelling_slope_males), center=TRUE, scale=FALSE)
+All_staging_data$log_fuelling_slope_females_st<-
+           scale(log(All_staging_data$Fuelling_slope_females), center=TRUE, scale=FALSE)
+All_staging_data$log_fuelling_slope_males_st<-
+           scale(log(All_staging_data$Fuelling_slope_males), center=TRUE, scale=FALSE)
 All_staging_data$log_Stopover<-log((All_staging_data$departure-All_staging_data$arrival))
  
 Departure_Weight_gain_Females<- cbind( group='f', subset(All_staging_data,
@@ -1182,7 +1196,10 @@ points(Stopover_before_now[2]~I(2016), pch=22, col=grey(0.45), bg=Late_color, ce
 #---------------------------------------
 # panel 2 
 
-Prediction.matrix_cur<-subset(Prediction.matrix,  Stopover>=17 &  Stopover<=35 & fuelling_slope_females<=10.5 & fuelling_slope_females>=4)
+Prediction.matrix_cur<-subset(Prediction.matrix,  Stopover>=17 & 
+                      Stopover<=35 & 
+					  fuelling_slope_females<=10.5 &
+					  fuelling_slope_females>=4)
 Female_Image<-as.image(x=Prediction.matrix_cur[,c(5,6)], Z=Prediction.matrix_cur$Prediction_females)
 
 plot(0,0, type='n', xaxt='n', yaxt='n', xlab='', ylab='', bty='n')  # make an empty plot
@@ -1197,7 +1214,10 @@ image(Female_Image,
           col=Colors(256), xlab='', ylab='', las=1, ylim=c(17,35), xlim=c(4,10.5),
 	  cex.axis=axes.labels.cex)
 
-contour(Female_Image,add=T, levels=plogis(Design_females_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1], lwd=3, col=grey(0.5), labels=round(plogis(Design_females_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1],2), labcex = 1)
+contour(Female_Image,add=T, levels=plogis(Design_females_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1],
+       lwd=3, col=grey(0.5),
+	   labels=round(plogis(Design_females_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1],2),
+	   labcex = 1)
 
 contour(Female_Image,add=T, levels=c(0.8, 0.85, 0.9, 0.95), col=grey(0.5), labcex=1)
 
@@ -1217,7 +1237,8 @@ points(Stopover_before_now[2]~Slope_females_before_now[2], pch=22, col=grey(0.45
 
 par(mar=c(4, 5,2,2 ))
 plot(Stayovers$Fuelling_slope_females~Stayovers$Yr, type='p',  ylab='',
-     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',  cex=2, pch=21, bg='black', col='white', las=1, ylim=c(4,10.5))
+     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',  cex=2, pch=21,
+	 bg='black', col='white', las=1, ylim=c(4,10.5))
 	 
 axis(1, cex.axis=axes.labels.cex)
 axis(3, labels=FALSE)
@@ -1293,7 +1314,9 @@ par(mar=c(4, 5,2,2 ))
 par(xaxs='r')
 
 plot(lugworms_ad~Yr, data=Lugworms, type='p',  ylab='',
-     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',  cex=2, pch=21, bg='black', col='white', ylim=c(min(Lugworms$lugworms_ad, na.rm=TRUE)-0.5, max(Lugworms$lugworms_ad, na.rm=TRUE)+0.5))
+     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',
+	 cex=2, pch=21, bg='black', col='white',
+	 ylim=c(min(Lugworms$lugworms_ad, na.rm=TRUE)-0.5, max(Lugworms$lugworms_ad, na.rm=TRUE)+0.5))
 	 
 axis(1, cex.axis=axes.labels.cex)
 axis(3, labels=FALSE)
@@ -1377,7 +1400,7 @@ Stayovers$resid_fsf[!is.na(Stayovers$Fuelling_slope_females)]<-residuals(M2)
 acf(Stayovers$resid_fsf,  na.action = na.pass)
 
 M2_gls<-gls(Fuelling_slope_females~Yr, data=Stayovers, na.action = na.omit)
-M2_gls_AR1<-gls(Fuelling_slope_females~Yr, data=Stayovers, na.action = na.omit, correlation = corAR1(form = ~ Yr))
+M2_gls_AR1<-gls(Fuelling_slope_females~Yr, data=Stayovers, na.action = na.omit, correlation=corAR1(form= ~Yr))
 
 AIC(M2_gls, M2_gls_AR1)
 
@@ -1394,7 +1417,7 @@ Stayovers$resid_lug[!is.na(Stayovers$lugworms_ad)]<-residuals(M3)
 acf(Stayovers$resid_lug,  na.action = na.pass)
 
 M3_gls<-gls(lugworms_ad~Yr, data=Stayovers, na.action = na.omit)
-M3_gls_AR1<-gls(lugworms_ad~Yr, data=Stayovers, na.action = na.omit, correlation = corAR1(form = ~ Yr))
+M3_gls_AR1<-gls(lugworms_ad~Yr, data=Stayovers, na.action = na.omit, correlation=corAR1(form = ~Yr))
 
 AIC(M3_gls, M3_gls_AR1)
 
@@ -1410,7 +1433,8 @@ Stayovers$resid_M4[!is.na(Stayovers$lugworms_ad) & !is.na(Stayovers$Fuelling_slo
 acf(Stayovers$resid_M4,  na.action = na.pass)
 
 M4_gls<-gls(Fuelling_slope_females~lugworms_ad, data=Stayovers, na.action = na.omit)
-M4_gls_AR1<-gls(Fuelling_slope_females~lugworms_ad, data=Stayovers, na.action = na.omit, correlation = corAR1(form = ~ Yr))
+M4_gls_AR1<-gls(Fuelling_slope_females~lugworms_ad, data=Stayovers, 
+                na.action = na.omit, correlation = corAR1(form = ~ Yr))
 
 AIC(M4_gls, M4_gls_AR1)
 
@@ -1463,9 +1487,11 @@ points(Stopover_before_now[2]~I(2016), pch=22, col=grey(0.45), bg=Late_color, ce
 #---------------------------------------
 # panel 2 
 
-Prediction.matrix_cur_males<-subset(Prediction.matrix,  fuelling_slope_males>=3.5 &  Stopover<=35 & fuelling_slope_males<=8.5 & Stopover>17)
+Prediction.matrix_cur_males<-subset(Prediction.matrix,  fuelling_slope_males>=3.5 &
+                             Stopover<=35 & fuelling_slope_males<=8.5 & Stopover>17)
 
-Male_Image<-as.image(x=Prediction.matrix_cur_males[,c(7,6)], Z=Prediction.matrix_cur_males$Prediction_males, nx=200, ny=200)
+Male_Image<-as.image(x=Prediction.matrix_cur_males[,c(7,6)],
+            Z=Prediction.matrix_cur_males$Prediction_males, nx=200, ny=200)
 
 plot(0,0, type='n', xaxt='n', yaxt='n', xlab='', ylab='', bty='n')  # make an empty plot
 par(xpd=TRUE)
@@ -1479,7 +1505,10 @@ image(Male_Image,
           col=Colors(256), xlab='', ylab='', las=1, ylim=c(17,35), xlim=c(3.5,8.5),
 	  cex.axis=axes.labels.cex)
 
-contour(Male_Image, add=T, levels=plogis(Design_males_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1], lwd=3, col=grey(0.5), labels=round(plogis(Design_males_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1],2), labcex = 1)
+contour(Male_Image, add=T, levels=plogis(Design_males_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1],
+        lwd=3, col=grey(0.5),
+		labels=round(plogis(Design_males_s%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))[1],2),
+		labcex = 1)
 
 contour(Male_Image,add=T, levels=c(0.8, 0.85, 0.9, 0.95), col=grey(0.5), labcex=1)
 	  
@@ -1498,7 +1527,8 @@ points(Stopover_before_now[2]~Slope_males_before_now[2], pch=22, col=grey(0.45),
 
 par(mar=c(4, 5,2,2 ))
 plot(Stayovers$Fuelling_slope_males~Stayovers$Yr, type='p',  ylab='',
-     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',  cex=2, pch=21, bg='black', col='white', las=1, ylim=c(3.5,8.5))
+     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',
+	 cex=2, pch=21, bg='black', col='white', las=1, ylim=c(3.5,8.5))
 	 
 axis(1, cex.axis=axes.labels.cex)
 axis(3, labels=FALSE)
@@ -1573,7 +1603,9 @@ par(mar=c(4, 5,2,2 ))
 par(xaxs='r')
 
 plot(lugworms_ad~Yr, data=Lugworms, type='p',  ylab='',
-     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',  cex=2, pch=21, bg='black', col='white', ylim=c(min(Lugworms$lugworms_ad, na.rm=TRUE)-0.5, max(Lugworms$lugworms_ad, na.rm=TRUE)+0.5))
+     las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',
+	 cex=2, pch=21, bg='black', col='white',
+	 ylim=c(min(Lugworms$lugworms_ad, na.rm=TRUE)-0.5, max(Lugworms$lugworms_ad, na.rm=TRUE)+0.5))
 	 
 axis(1, cex.axis=axes.labels.cex)
 axis(3, labels=FALSE)
