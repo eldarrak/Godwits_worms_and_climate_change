@@ -483,7 +483,7 @@ print(phenology_SEM)
 
 Parameter.Index<-which(substr(names(phenology_SEM$BUGSoutput$sims.list),1,1)=='b')
 SEM_coefs<-cbind('b'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) mean(x)),
-    'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))))
+ 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))))
 print(SEM_coefs)
 write.csv(SEM_coefs, file='./results/SEM_coefs.csv')
 ```
@@ -538,10 +538,12 @@ for (i in 1:length(Individuals)) {
    Track<-subset(All_tracks, ID==(Individuals[i]) & Time<as.POSIXct('2016/06/24'))
    Year<-unique(as.numeric(format(Track$Time, format='%Y')))
    Index_stationary<-rep(1, length=length(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)))
-   Index_stationary[which(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)>25)]<-0#>25km=>movement
+   Index_stationary[
+             which(spDists(cbind(Track$lon, Track$lat), longlat=TRUE, segments=TRUE)>25)]<-0#>25km=>movement
    Starts<-unique(c(1, which(diff(Index_stationary)==1)+1))
    Ends<-unique(c(which(diff(Index_stationary)==-1)+1, length(Index_stationary)))
-   Periods<-data.frame(Start_Index=Starts, End_Index=Ends, Start_time=Track$Time[Starts], End_time=Track$Time[Ends])
+   Periods<-data.frame(Start_Index=Starts, End_Index=Ends,
+                      Start_time=Track$Time[Starts], End_time=Track$Time[Ends])
    Periods$Duration<- (as.numeric(Periods$End_time)- as.numeric(Periods$Start_time))/3600/24 # in days
    Periods<-Periods[Periods$Duration>1,]
 
@@ -1103,7 +1105,8 @@ Create grid for prediction
 Scale_females<-scale(log(All_staging_data$Fuelling_slope_females))
 Scale_males<-scale(log(All_staging_data$Fuelling_slope_males))
 
-Prediction.matrix<-expand.grid(log_fuelling_slope=seq(1.25-1.717, 2.35-1.717, by=0.001), log_Stopover=seq(2.75, 3.6, by=0.001))
+Prediction.matrix<-expand.grid(log_fuelling_slope=seq(1.25-1.717, 2.35-1.717, by=0.001),
+                               log_Stopover=seq(2.75, 3.6, by=0.001))
 
 Design_females<-matrix(nrow=nrow(Prediction.matrix), ncol=20, data=0)
 Design_females[,1]<-1
@@ -1121,9 +1124,11 @@ Design_males[,6]<-Prediction.matrix$log_Stopover
 
 Prediction.matrix$Prediction_females<-plogis(Design_females%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
 Prediction.matrix$Prediction_males<-plogis(Design_males%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
-Prediction.matrix$fuelling_slope_females<-exp(Prediction.matrix$log_fuelling_slope+attr(Scale_females,"scaled:center"))
+Prediction.matrix$fuelling_slope_females<-
+     exp(Prediction.matrix$log_fuelling_slope+attr(Scale_females,"scaled:center"))
 Prediction.matrix$Stopover<-exp(Prediction.matrix$log_Stopover)			
-Prediction.matrix$fuelling_slope_males<-exp(Prediction.matrix$log_fuelling_slope+attr(Scale_males,"scaled:center"))
+Prediction.matrix$fuelling_slope_males<-
+     exp(Prediction.matrix$log_fuelling_slope+attr(Scale_males,"scaled:center"))
 
 M1<-(lm(Stayover~Yr, data=Stayovers))
 Stopover_before_now<-predict(M1, newdata=data.frame(Yr=c(1995, 2016)))
