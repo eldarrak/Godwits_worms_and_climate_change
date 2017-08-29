@@ -42,7 +42,6 @@ if (Use_local_data) {
    download.file('https://git.io/vXEb5', destfile='./results/Fuelling_slopes.csv')
    download.file('https://git.io/vXueC', destfile='./results/survival_result.RDS',mode='wb')
    download.file('https://git.io/vXuqH', destfile='./results/Mauritania_counts_model.RDS',mode='wb')
-   download.file('https://git.io/vXgvd', destfile='./results/female_survival_prediction.csv')
 }
 if (Use_local_data & !'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data directory not found') 
 
