@@ -1160,7 +1160,7 @@ Design_males_s[,6]<-log(Stopover_before_now)
 ### 9.3 Female plot
 First I  plot female figure (Figure 2) and then male figure for extended data Fig 2.
 
-```{r fig.width=10, fig.height=10}
+```{r fig.width=6, fig.height=9}
 if (Save_pdf) pdf(file='Figure 2.pdf', useDingbats=FALSE, width=6, height=9)
 
 par(mfrow=c(3,2))
@@ -1168,6 +1168,15 @@ par(mar=c(4, 5,2,2 ))
 # set up colors
 Late_color<-'#CD6632'
 Early_color<-'#6FC067'
+Colors<-colorRampPalette(c("#b2182b",
+                           "#d6604d",
+                           "#f4a582",
+                           "#fddbc7",
+                           "#f7f7f7",
+                           "#d1e5f0",
+                           "#92c5de",
+                           "#4393c3",
+                           "#2166ac"), bias=0.5)
 axes.labels.cex=1.2
 
 # Panel 1 - stayover change over years
@@ -1449,7 +1458,7 @@ AIC(M4_gls, M4_gls_AR1)
 ### 9.5 Male plot
 Extended data Fig 2.
 
-```{r fig.width=10, fig.height=10}
+```{r fig.width=6, fig.height=9}
 
 if (Save_pdf) pdf(file='Males_plot.pdf', useDingbats=FALSE, width=6, height=9)
 
