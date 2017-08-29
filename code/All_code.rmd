@@ -276,7 +276,7 @@ jags.params=c("a0","total_k", "T_0k", "site_i", "sigma", "r", "fit", "fit.new")
 ```{r}
 if (Run_everything) {
    # following run takes ~ 5 minutes brt
-   n.chains=4
+   nchains=4
    migration_model<-jags.parallel(data=Data, 
                   inits, 
                   parameters=jags.params, 
