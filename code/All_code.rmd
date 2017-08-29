@@ -64,6 +64,7 @@ library(rgdal)
 library(maptools)
 library(maps)
 library(RCurl)
+library(fields)
 ```
 Download taimyrensis bar-trailed godwit [(_Limosa lapponica taymyrensis_) range](#lappo) from this GitHub repo
 ```{r}
