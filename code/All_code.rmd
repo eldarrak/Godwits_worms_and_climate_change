@@ -1,4 +1,4 @@
-﻿# Supplementary code to 'Food abundance at temperate shores can mitigate Arctic climate change effects in a migratory bird' by Rakhimberidev et al. to be submitted
+﻿# Supplementary code to 'Refueling conditions at staging sites can mitigate Arctic warming effects in a migratory bird' by Rakhimberidev et al., submitted
 
 _code by Eldar Rakhimberdiev_
 
