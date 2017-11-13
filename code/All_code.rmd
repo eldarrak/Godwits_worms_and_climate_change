@@ -490,7 +490,8 @@ SEM_coefs<-data.frame(
 	   FUN=function(x) quantile(x, 0.025)), 
 	'97.5%'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index],
 	   FUN=function(x) quantile(x, 0.975)), 
- 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))), check.names=FALSE)
+ 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index],
+        FUN=function(x) max(mean(x>0), mean(x<0))), check.names=FALSE)
 
  Vars<-data.frame(rbind(c('Time', 'Arrival Wadden Sea'),
      c('Time','Snowmelt'),
@@ -1107,15 +1108,18 @@ abline(h=182, col=grey(0.5))
    lines(Pred_sn_LCI~XX_sn,  lty=2)
 
   for (i in 1:nrow(Data_all)) {
-     points(Snowmelt_global~Yr, data=Data_all[i,], pch=21, cex=point_cex, bg=Snow_global_color, col=grey(0.4), lwd=point_lwd)
-     text(y=Data_all$Snowmelt_global[i], x=Data_all$Yr[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+     points(Snowmelt_global~Yr, data=Data_all[i,], pch=21, 
+	       cex=point_cex, bg=Snow_global_color, col=grey(0.4), lwd=point_lwd)
+     text(y=Data_all$Snowmelt_global[i], x=Data_all$Yr[i], 
+	       labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
    }
    box()
 
 #########################################
 # Now panel with Taimyr phenology. 
  X_range<-range(Data_all$Snowmelt_local)
- plot(Tipula~Snowmelt_local, data=Data_all, type='n', ylim=c(140+3, 195-5), las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE, ylab='', xlab='')
+ plot(Tipula~Snowmelt_local, data=Data_all, type='n', ylim=c(140+3, 195-5),
+     las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE, ylab='', xlab='')
  box()
  abline(h=121, col=grey(0.5))
  abline(h=152+15, col=grey(0.5), lty=2)
@@ -1136,7 +1140,8 @@ abline(h=182, col=grey(0.5))
  abline(v=152+7.5, col=grey(0.5), lty=3)
  abline(v=121+15+7.5, col=grey(0.5), lty=3)
  
-axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'), cex.axis=axes.labels.cex)
+axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'),
+     cex.axis=axes.labels.cex)
 mtext(side=1, 'date of snowmelt (SE Taimyr)', line=2.5, cex=axes.labels.cex*0.8)
 mtext(side=2, 'Taimyr phenology', line=1, cex=axes.labels.cex*0.8)
   
@@ -1165,32 +1170,42 @@ abline(h=182, col=grey(0.5))
    abline(lm_nests, lwd=2, col=Nest_color)
   
    # Arrivals
-   abline(lm(Arr_T~Snowmelt_local, data=subset(Data_all, Yr>1992)),col=Khat_arr_color, lwd=2)
+   abline(lm(Arr_T~Snowmelt_local, data=subset(Data_all, Yr>1992)), 
+        col=Khat_arr_color, lwd=2)
 
   for (i in 1:nrow(Data_all)) {   
-      points(Snowmelt_global~Snowmelt_local, data=Data_all[i,],  pch=21,     bg=Snow_global_color,  cex=point_cex, col=grey(0.5), lwd=point_lwd )
-	  text(y=Data_all$Snowmelt_global[i], x=Data_all$Snowmelt_local[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+      points(Snowmelt_global~Snowmelt_local, data=Data_all[i,], pch=21,
+            bg=Snow_global_color,  cex=point_cex, col=grey(0.5), lwd=point_lwd )
+	  text(y=Data_all$Snowmelt_global[i], x=Data_all$Snowmelt_local[i],
+	        labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
   } 
   for (i in 1:nrow(Data_all)) {
     # Tipula
-    points(Tipula~Snowmelt_local, data=Data_all[i,], pch=21, bg=Tipula_color,  lwd=point_lwd, cex=point_cex, col=grey(0.5))
-    text(y=Data_all$Tipula[i], x=Data_all$Snowmelt_local[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+    points(Tipula~Snowmelt_local, data=Data_all[i,], pch=21, bg=Tipula_color,
+	     lwd=point_lwd, cex=point_cex, col=grey(0.5))
+    text(y=Data_all$Tipula[i], x=Data_all$Snowmelt_local[i],
+	     labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
    
    # Arrivals
-   points(Arr_T~Snowmelt_local, data=subset(Data_all, Yr>=1992)[i,],  pch=21, cex=point_cex, col=grey(0.4),  bg=Khat_arr_color,  lwd=point_lwd)
-   text(y=Data_all$Arr_T[i], x=Data_all$Snowmelt_local[i], labels=substr(Data_all$Yr[i], 3,4) , col='white',  cex=font_cex)
+   points(Arr_T~Snowmelt_local, data=subset(Data_all, Yr>=1992)[i,], 
+         pch=21, cex=point_cex, col=grey(0.4),  bg=Khat_arr_color,  lwd=point_lwd)
+   text(y=Data_all$Arr_T[i], x=Data_all$Snowmelt_local[i],
+         labels=substr(Data_all$Yr[i], 3,4) , col='white',  cex=font_cex)
   }
    
   # nests
   for (i in 1:nrow(Nests_m)) {
-     points(yday~jdate50_south, data=Nests_m[i,], pch=21,   lwd=point_lwd, bg=Nest_color, cex=point_cex, col=grey(0.5))
-     text(y=Nests_m$yday[i],  x=Nests_m$jdate50_south[i], labels=substr(Nests_m$Yr[i], 3,4) , col='white',cex=font_cex)
+     points(yday~jdate50_south, data=Nests_m[i,], pch=21, lwd=point_lwd,
+	      bg=Nest_color, cex=point_cex, col=grey(0.5))
+     text(y=Nests_m$yday[i],  x=Nests_m$jdate50_south[i],
+	      labels=substr(Nests_m$Yr[i], 3,4) , col='white',cex=font_cex)
   }
    box()
    
    ############################
    # this will be panel B
-   plot(Arrivals_WZ~Snowmelt_global, data=Data_all, type='n', ylim=c(111, 135.5-5), las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE, ylab='', xlab='')
+   plot(Arrivals_WZ~Snowmelt_global, data=Data_all, type='n', ylim=c(111, 135.5-5),
+       las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE, ylab='', xlab='')
  box()
  abline(h=121, col=grey(0.5))
  abline(h=121-7.5, col=grey(0.5), lty=3)
@@ -1205,7 +1220,8 @@ abline(h=182, col=grey(0.5))
  abline(v=152+7.5, col=grey(0.5), lty=3)
  abline(v=121+15+7.5, col=grey(0.5), lty=3)
 
-axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'), cex.axis=axes.labels.cex)
+axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'),
+     cex.axis=axes.labels.cex)
 mtext(side=1, 'date of snowmelt (Taimyr)', line=2.5, cex=axes.labels.cex*0.8)
 mtext(side=2, 'arrival at Wadden Sea', line=1, cex=axes.labels.cex*0.8)
 
@@ -1224,34 +1240,38 @@ mtext(side=2, 'arrival at Wadden Sea', line=1, cex=axes.labels.cex*0.8)
    abline(h=121, col=grey(0.5))
    
   for (i in 1:nrow(Data_all)) {
-     points(Arrivals_WZ~Snowmelt_global, data=Data_all[i,], pch=21, bg=Arr_WZ_col, col=grey(0.4),  lwd=point_lwd, cex=point_cex)
-     text(y=Data_all$Arrivals_WZ[i], x=Data_all$Snowmelt_globa[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+     points(Arrivals_WZ~Snowmelt_global, data=Data_all[i,], pch=21, bg=Arr_WZ_col,
+	       col=grey(0.4),  lwd=point_lwd, cex=point_cex)
+     text(y=Data_all$Arrivals_WZ[i], x=Data_all$Snowmelt_globa[i],
+	       labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
    }
    box()
 
    ############################
    # this will be panel D
-   plot(Ref_time~Snowmelt_global, data=Data_all, type='n', las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE,  xlab='', ylab='', ylim=c(13.5-0.5+2, 37-4.5+2))
-   box()
-   axis(2, las=1)
-   mtext(side=2, 'refueling time (d)', line=2.5, cex=axes.labels.cex*0.8)
+plot(Ref_time~Snowmelt_global, data=Data_all, type='n', las=1, xlim=c(X_range[1]-x_marg,
+      X_range[2]+x_marg),axes=FALSE,  xlab='', ylab='', ylim=c(13.5-0.5+2, 37-4.5+2))
+box()
+axis(2, las=1)
+mtext(side=2, 'refueling time (d)', line=2.5, cex=axes.labels.cex*0.8)
 
-   axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'), cex.axis=axes.labels.cex)
-   mtext(side=1, 'date of snowmelt (Taimyr)', line=2.5, cex=axes.labels.cex*0.8)
+axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'),
+    cex.axis=axes.labels.cex)
+mtext(side=1, 'date of snowmelt (Taimyr)', line=2.5, cex=axes.labels.cex*0.8)
    
- abline(v=152, col=grey(0.5))
- abline(v=182, col=grey(0.5))
- abline(v=152+15, col=grey(0.5), lty=2)
- abline(h=25, col=grey(0.5))
- abline(h=25-7.5, col=grey(0.5), lty=3)
- abline(h=25+7.5, col=grey(0.5), lty=3)
- 
- abline(v=182+7.5, col=grey(0.5), lty=3)
- abline(v=152+15+7.5, col=grey(0.5), lty=3)
- abline(v=152+7.5, col=grey(0.5), lty=3)
- abline(v=121+15+7.5, col=grey(0.5), lty=3)
+abline(v=152, col=grey(0.5))
+abline(v=182, col=grey(0.5))
+abline(v=152+15, col=grey(0.5), lty=2)
+abline(h=25, col=grey(0.5))
+abline(h=25-7.5, col=grey(0.5), lty=3)
+abline(h=25+7.5, col=grey(0.5), lty=3)
 
-   Ref_time_lm<-lm(Ref_time~Snowmelt_global, data=Data_all)
+abline(v=182+7.5, col=grey(0.5), lty=3)
+abline(v=152+15+7.5, col=grey(0.5), lty=3)
+abline(v=152+7.5, col=grey(0.5), lty=3)
+abline(v=121+15+7.5, col=grey(0.5), lty=3)
+
+  Ref_time_lm<-lm(Ref_time~Snowmelt_global, data=Data_all)
    abline(Ref_time_lm, lwd=2)
 
    # plot prediction lines..
@@ -1263,12 +1283,13 @@ mtext(side=2, 'arrival at Wadden Sea', line=1, cex=axes.labels.cex*0.8)
    lines(Pred_ref_LCI~XX, lty=2)
 
  for (i in 1:nrow(Data_all)) {
-     points(Ref_time~Snowmelt_global, data=Data_all[i,], pch=21, cex=point_cex, bg=Ref_col, col=grey(0.4),  lwd=point_lwd)
-     text(y=Data_all$Ref_time[i], x=Data_all$Snowmelt_globa[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+     points(Ref_time~Snowmelt_global, data=Data_all[i,], pch=21, cex=point_cex,
+	      bg=Ref_col, col=grey(0.4),  lwd=point_lwd)
+     text(y=Data_all$Ref_time[i], x=Data_all$Snowmelt_globa[i],
+	      labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
  }
 
 # panel E
-	  
 plot(median~Years, data=Predicted_densities, ylim=c(7000, 27000),
      type='n', las=1, ylab='', axes=FALSE, xlab='', xlim=c(1992, 2017))
 
@@ -1293,8 +1314,9 @@ lines(x=Predicted_densities$Years, Predicted_densities$ucl, lty=2)
 lines(x=Predicted_densities$Years, Predicted_densities$lcl, lty=2)
 lines(median~Years, data=Predicted_densities, lwd=2)
 	 
-points(rowSums(y.matrix)~ Years,  pch=21, cex=point_cex, bg=Color_BA, col=grey(0.4),  lwd=point_lwd)
-text(y=rowSums(y.matrix), x=Years, labels=substr(Years, 3,4) , col='white', cex=font_cex)
+points(rowSums(y.matrix)~ Years,  pch=21, cex=point_cex, bg=Color_BA,
+      col=grey(0.4),  lwd=point_lwd)
+text(y=rowSums(y.matrix), x=Years, labels=substr(Years, 3,4), col='white', cex=font_cex)
 box()
 if (Save_pdf) dev.off()
 ```
@@ -1329,7 +1351,8 @@ if (Use_local_data) {
    Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
    Arrivals_Khat$Departure<-Arrivals_Khat$yday-5.5
    names(Arr_Wadden)[2]<-'yday'
-   Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
+   Stayovers<-merge(Arr_Wadden,
+        Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
    Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
    Stayovers<-merge(Stayovers, subset(Lugworms, Yr>1995), all.x=TRUE)
    Stayovers<-merge(Stayovers, Fuelling_slopes, all=TRUE)
@@ -1356,8 +1379,10 @@ Design_males[,4]<-Prediction.matrix$log_Stopover
 Design_males[,5]<-1
 Design_males[,6]<-Prediction.matrix$log_Stopover
 
-Prediction.matrix$Prediction_females<-plogis(Design_females%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
-Prediction.matrix$Prediction_males<-plogis(Design_males%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
+Prediction.matrix$Prediction_females<-
+     plogis(Design_females%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
+Prediction.matrix$Prediction_males<-
+     plogis(Design_males%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
 Prediction.matrix$fuelling_slope_females<-
      exp(Prediction.matrix$log_fuelling_slope+attr(Scale_females,"scaled:center"))
 Prediction.matrix$Stopover<-exp(Prediction.matrix$log_Stopover)			
@@ -1416,7 +1441,8 @@ axes.labels.cex=1.2
 
 # Panel 1 - stayover change over years
 plot(Stayovers$Stayover~Stayovers$Yr, type='p', ylim=c(17, 35),  ylab='',
-     las=1, xlim=c(1992, 2018), xlab='', cex=2, axes=F, yaxs='i', pch=21, col='white', bg='black')
+     las=1, xlim=c(1992, 2018), xlab='', cex=2, axes=F, yaxs='i', pch=21,
+	 col='white', bg='black')
 	 
 axis(1, cex.axis=axes.labels.cex)
 axis(4, labels=FALSE)
@@ -1448,7 +1474,7 @@ Prediction.matrix_cur<-subset(Prediction.matrix,  Stopover>=17 &
                       Stopover<=35 & 
 					  fuelling_slope_females<=10.5 &
 					  fuelling_slope_females>=4)
-Female_Image<-as.image(x=Prediction.matrix_cur[,c(5,6)], Z=Prediction.matrix_cur$Prediction_females)
+Female_Image<-as.image(x=Prediction.matrix_cur[,c(5,6)], =Prediction.matrix_cur$Prediction_females)
 
 plot(0,0, type='n', xaxt='n', yaxt='n', xlab='', ylab='', bty='n')  # make an empty plot
 par(xpd=TRUE)
