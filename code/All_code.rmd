@@ -1475,7 +1475,7 @@ Prediction.matrix_cur<-subset(Prediction.matrix,  Stopover>=17 &
                       Stopover<=35 & 
 					  fuelling_slope_females<=10.5 &
 					  fuelling_slope_females>=4)
-Female_Image<-as.image(x=Prediction.matrix_cur[,c(5,6)], =Prediction.matrix_cur$Prediction_females)
+Female_Image<-as.image(x=Prediction.matrix_cur[,c(5,6)], Z=Prediction.matrix_cur$Prediction_females)
 
 plot(0,0, type='n', xaxt='n', yaxt='n', xlab='', ylab='', bty='n')  # make an empty plot
 par(xpd=TRUE)
