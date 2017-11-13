@@ -1647,7 +1647,7 @@ box()
 
 if (Save_pdf) dev.off()
 ```
-### 9.5 Check for temporal autocorrelation
+### 9.4 Check for temporal autocorrelation
 
 ```{r}
 # stayover duration
@@ -2018,7 +2018,7 @@ if (Save_pdf) dev.off()
 ```
 
 ## 11 Plot capture data with slopes (Figures S3 and S4)
-### 11.1
+### 11.1 Load data
 ```{r}
    # a. get arrivals to the Wadden Sea
    Arrivals_WS<-read.csv('./results/Arrivals_migration_model.csv')
@@ -2176,7 +2176,7 @@ if (Use_local_data) {
 
 P.S. The html file from this markdown can be recereated with folloing code
 ```{r eval=FALSE}
-download.file('https://git.io/vXaM6', 'tmp.rmd')
+download.file('https://git.io/vXaM6', 'tmp.rmd', cacheOK = FALSE)
 rmarkdown::render('tmp.rmd', output_format = 'html_document',
         output_options=list(toc=TRUE, toc_float=list(collapsed=FALSE)), 
 		encoding='utf-8')
