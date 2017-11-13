@@ -1060,7 +1060,8 @@ par(mar=c(4,4,2,2))
  #######################
  # first will be panel with snow over years.
  
- plot(Snowmelt_global~Yr, data=Data_all, type='n', ylim=c(140+3, 195-5), las=1,axes=FALSE, ylab='', xlab='', xlim=c(1992, 2017))
+ plot(Snowmelt_global~Yr, data=Data_all, type='n', ylim=c(140+3, 195-5),
+      las=1,axes=FALSE, ylab='', xlab='', xlim=c(1992, 2017))
  box()
  abline(h=121, col=grey(0.5))
  abline(h=121-7.5, col=grey(0.5), lty=3)
