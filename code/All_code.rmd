@@ -46,14 +46,14 @@ if (Use_local_data) {
 if (Use_local_data & !'data' %in% list.dirs(full.names=FALSE, recursive=FALSE)) stop('data directory not found') 
 
 ```
-### 0.3 Plot on screen or save plots as pdfs?
+### 0.4 Plot on screen or save plots as pdfs?
 Parts of this code take time to run, so if you want to go through examples fast you can specify
 ```{r}
 Save_pdf=FALSE # Change to TRUE if you want to save pdf of figures.
 ```
 
 ## 1. Reconstruction of snowmelt from remote sensing data
-We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _Limosa lapponica taymyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Extended Data Tab. 1.
+We used NOAA CDR snow cover extent based on remote sensed data [Brown & Robinson 2011](#brown-robinson). Weekly snow cover data were downloaded on 24×24 km grid and subset by the _Limosa lapponica taymyrensis_ breeding range [Lappo et al. 2012](#lappo). Following code provided in [van Gils et al 2016](#van-gils), we extracted date 50% spring snow coverage as linearly interpolated time point at which mean snow cover first time in a year crossed 50%, results are presented in Supplementary Materials Table S1.
 
 ### 1.1 Download publically available data
 Load required packages
@@ -99,10 +99,7 @@ snow <- brick(z)
 
 start <- as.POSIXct("1966-10-03", "GMT")
 date <- start + ((t-6)*24*60*60)
-```
 
-### 1.3 Projection
-```{r}
 projSnow <- "+proj=stere +lat_0=90 +lon_0=10"
 xy <- project(cbind(values(lon), values(lat)), projSnow)
 area <- spTransform(area.longlat, CRS(projSnow))
@@ -110,7 +107,7 @@ Grid_centers<-SpatialPoints(xy, proj4string=CRS(projSnow))
 Grid_centers_lon_lat<-spTransform(Grid_centers, CRS=CRS(proj4string(area.longlat)))
 ```
 
-### 1.4 Select and plot snow points
+### 1.3 Select and plot snow points
 ```{r}
 # select snow points within godwtis's area
 Selected_Points<-which(!is.na(over(Grid_centers, area)))
@@ -136,7 +133,7 @@ points(Field_site[1],Field_site[2], pch=17, cex=2, col=2)
 plot(Grid_centers_lon_lat[Selected_Points_near_field_station,], col=Colors[3], pch=19, cex=2, add=TRUE)
 ```
 
-### 1.5 Extract first date of 50% snowmelt
+### 1.4 Extract first date of 50% snowmelt
 ```{r}
 Res<-c()
    for(i in 1982:2017) {
@@ -160,7 +157,7 @@ plot(jdate50~Yr, data=Res, pch=19, col=Colors[2], ylim=range(c(Res[,2], Res[,3])
 summary(lm(jdate50~Yr, data=subset(Res, Yr>1995 & Yr<2017)))
 ```
 
-### 1.6 Comparison of remote sensing data with ground observations
+### 1.5 Comparison of remote sensing data with ground observations
 ```{r}
    Snow_remote<-read.csv('./results/Snow_remote.csv')
 if (Use_local_data) {
@@ -312,7 +309,7 @@ write.csv(Arrivals, file="./results/Arrivals_migration_model.csv", row.names=F)
 ```
 
 
-## 3. Casuality in phenological data with structural equations modelling
+## 3. Causality in phenological data with structural equations modelling
 
 ### 3.1 Load packages and data
 
@@ -395,19 +392,19 @@ b1.1 ~ dnorm(0,0.00001);
 Arr_WZ_tau = pow(Arr_WZ_sigma, -2)
 Arr_WZ_sigma ~ dnorm(0,1)T(0,)
 
-b2.0 ~ dnorm(0,0.00001); b2.1 ~ dnorm(0,0.00001)
+b2.1 ~ dnorm(0,0.00001)
 Snowmelt_tau = pow(Snowmelt_sigma, -2)
 Snowmelt_sigma  ~ dnorm(0,1)T(0,)
 
-b3.0 ~ dnorm(0,0.00001); b3.1 ~ dnorm(0,0.00001); b3.2 ~ dnorm(0,0.00001);b3.3 ~ dnorm(0,0.00001)
+b3.1 ~ dnorm(0,0.00001); b3.2 ~ dnorm(0,0.00001);b3.3 ~ dnorm(0,0.00001)
 Arr_T_tau = pow(Arr_T_sigma, -2)
 Arr_T_sigma ~ dnorm(0,1)T(0,)
 
-b4.0 ~ dnorm(0,0.00001); b4.1 ~ dnorm(0,0.00001); b4.2 ~ dnorm(0,0.00001)
+b4.1 ~ dnorm(0,0.00001); b4.2 ~ dnorm(0,0.00001)
 Tipula_tau = pow(Tipula_sigma, -2)
 Tipula_sigma ~ dnorm(0,1)T(0,)
 
-b5.0 ~ dnorm(0,0.00001); b5.1 ~ dnorm(0,0.00001); b5.2 ~ dnorm(0,0.00001); 
+b5.1 ~ dnorm(0,0.00001); b5.2 ~ dnorm(0,0.00001); 
 b5.3 ~ dnorm(0,0.00001); b5.4 ~ dnorm(0,0.00001);
 Breeding_tau = pow(Breeding_sigma, -2)
 Breeding_sigma ~ dnorm(0,1)T(0,)
@@ -482,14 +479,37 @@ phenology_SEM<-readRDS('./results/phenology_SEM.RDS')
 print(phenology_SEM)
 
 Parameter.Index<-which(substr(names(phenology_SEM$BUGSoutput$sims.list),1,1)=='b')
-SEM_coefs<-cbind('b'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) mean(x)),
- 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))))
-print(SEM_coefs)
+SEM_coefs<-data.frame(
+   'mean'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index],
+       FUN=function(x) mean(x)), 
+   'sd'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index],
+       FUN=function(x) sd(x)), 
+	'median'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index],
+	   FUN=function(x) median(x)),
+	'2.5%'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index],
+	   FUN=function(x) quantile(x, 0.025)), 
+	'97.5%'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index],
+	   FUN=function(x) quantile(x, 0.975)), 
+ 'P(|b|>0)'=sapply(phenology_SEM$BUGSoutput$sims.list[Parameter.Index], FUN=function(x) max(mean(x>0), mean(x<0))), check.names=FALSE)
+
+ Vars<-data.frame(rbind(c('Time', 'Arrival Wadden Sea'),
+     c('Time','Snowmelt'),
+     c('Time', 'Arrival to Taimyr'),
+     c('Snowmelt', 'Arrival to Taimyr'),
+     c('Arrival Wadden Sea', 'Arrival to Taimyr'),
+     c('Time', 'Crane fly emergence'),
+     c('Snowmelt', 'Crane fly emergence'),
+     c('Time', 'Clutch Initiation'),
+     c('Snowmelt', 'Clutch Initiation'),
+     c('Arrival to Taimyr', 'Clutch Initiation'),
+     c('Crane fly emergence', 'Clutch Initiation')))
+	 names(Vars)<-c('Effect of', 'on')
+SEM_coefs<-cbind(Vars, SEM_coefs)
+print(SEM_coefs, digits=2)
 write.csv(SEM_coefs, file='./results/SEM_coefs.csv')
 ```
 
 ## 4. Migration speed and stopover duration from satellite tracking data
-
 ### 4.1 Download data
 ```{r results='hide'}
 if (Use_local_data) {
@@ -523,7 +543,7 @@ for (i in 1:length(Individuals)) {
 Schedules[,2]<-as.POSIXct(Schedules[,2], tz="GMT", origin='1970-01-01')
 Schedules[,3]<-as.POSIXct(Schedules[,3], tz="GMT", origin='1970-01-01')
 Schedules$Migration_to_WZ<-as.numeric((difftime(Schedules[,3],Schedules[,2], units='days')))
-Schedules$Refuelling<-as.numeric((difftime(Schedules[,4],Schedules[,3], units='days')))
+Schedules$Refueling<-as.numeric((difftime(Schedules[,4],Schedules[,3], units='days')))
 Schedules$Migration_to_Tai<-as.numeric((difftime(Schedules[,5],Schedules[,4], units='days')))
 
 print(mean(Schedules$Migration_to_Tai)) # 5.16
@@ -567,7 +587,7 @@ print(nrow(Periods_all)) # 6 stopovers for longer than 24 hours.
 print(length(which(Periods_all$Duration>2))) #only two stopover longer than 2 days.
 ```
 
-## 5. Refuelling rates and their relationship with lugworm abundance
+## 5. Refueling rates and their relationship with lugworm abundance
 
 ### 5.1 Estimate yearly arrival mass from Castricum data
 ```{r}
@@ -630,7 +650,7 @@ Lugworms_vec<-Lugworms[Lugworms$Yr %in% unique(Data_to_model$Yr),2]
 ```
 
 ### 5.3 Lugworm data validation
-While refuelling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey ([SIBES](https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea)) - large scale grid sampling of benthic fauna in the Wadden Sea ([Bijleveld et al. 2012](#bijleveld), [Compton et al. 2013](#compton)).  We used SIBES data from sampling stations within 500 meters from Terschelling coast (refuelling area) and from Balgzand for all available years (2008 - 2014). 
+While refueling in the Wadden Sea taymyrensis godwits concentrate near Terschelling Island (53.4°N, 5.34°E),  that is 50 km away from long term lugworm sampling area at Balgazand (52.9°N, 4.87°E). In order to validate use of Balgzand data on lugworm abundance for godwits we used shorter, but covering both areas dataset - Synoptic Intertidal Benthic Survey ([SIBES](https://www.nioz.nl/en/education/internships/assessing-the-macrozoobenthos-of-the-dutch-wadden-sea)) - large scale grid sampling of benthic fauna in the Wadden Sea ([Bijleveld et al. 2012](#bijleveld), [Compton et al. 2013](#compton)).  We used SIBES data from sampling stations within 500 meters from Terschelling coast (refueling area) and from Balgzand for all available years (2008 - 2014). 
 ```{r}
 if (Use_local_data) {
   Lugworms_SIBES<-read.csv('./data/lugworm_densities_two_sites.csv')
@@ -639,7 +659,7 @@ if (Use_local_data) {
 }
 print(cor.test(Lugworms_SIBES$Balgzand,Lugworms_SIBES$Terschelling))
 ```
-Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for refuelling conditions for godwits.
+Data on both sites show correlated changes over years (Pearson's _r_=0.86) allowing us to use Balgzand data as a proxy for refueling conditions for godwits.
 
 ### 5.4 Formulate model
 ```{r results='hide'}
@@ -805,7 +825,7 @@ names(Departure_Weight_gain)[2]<-'time'
 Departure_Weight_gain<-subset(Departure_Weight_gain, time>2001 & time<2016)
 ```
 
-## 6.2 Prepare data in RMark
+### 6.2 Prepare data in RMark
 ```{r}
 library('RMark')
 
@@ -839,7 +859,6 @@ Phi.9=list(formula=~two_plus + SEX)
 p.time=list(formula=~time)
 
 cml=create.model.list("CJS")
-
 ```
 
 ### 6.3 Run MARK model
@@ -942,34 +961,18 @@ if (Run_everything) {
    saveRDS(Counts_model, file='./results/Mauritania_counts_model.RDS')
 }
 Counts_model<-readRDS('./results/Mauritania_counts_model.RDS')
-```
-
-### 7.5 Plot model results for panel C in Fig.1
-```{r fig.width=5, fig.height=5, results='hide'}
 print(Counts_model)
-if (Save_pdf) pdf("Mauritania_counts.pdf", 5, 5, useDingbats=FALSE)
-Predicted_densities<-as.data.frame(cbind(Years, 
-      t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
-      FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
-names(Predicted_densities)[2:4]<-c("lcl", "median","ucl")
-plot(median~Years, data=Predicted_densities, ylim=c(7000, 27000),
-     type='n', las=1, ylab='')
-Colors<-colorRampPalette(c("white", "#0072B2"))
-polygon(x=c(Predicted_densities$Years, rev(Predicted_densities$Years)),
-        y=c(Predicted_densities$lcl, rev(Predicted_densities$ucl)), col=Colors(5)[2], border=NA)
-lines(median~Years, data=Predicted_densities, col='#0072B2', lwd=2)
-points(rowSums(y.matrix)~ Years, pch=21, bg='#0072B2', cex=2, col=NULL)
-if (Save_pdf) dev.off()
 ```
 
-## 8. Phenology plot (Fig. 1 b)
-
+## 8. Phenology plot (Fig. 1)
 ### 8.1 Load data
 ```{r}
    # read Snow
-   Snow<-read.csv('./results/Snow_remote.csv', as.is=TRUE)
+   Snowmelt<-read.csv('./results/Snow_remote.csv', as.is=TRUE)
    # read arrivals to Wadden Sea (predicted by arrival model)
-   Arr_Wadden<-read.csv('./results/Arrivals_migration_model.csv')
+   Arrivals_WZ<-read.csv('./results/Arrivals_migration_model.csv')
+   # read Mauritania counts model resutls
+   Counts_model<-readRDS('./results/Mauritania_counts_model.RDS')
 
 if (Use_local_data) {
    # read breeding data
@@ -977,90 +980,321 @@ if (Use_local_data) {
    # read crane flies
    Tipula<-read.csv('./data/Tipula.csv', as.is=TRUE)
    # read arrivals to Khatanga
-   Arrivals_Khat<-read.csv('./data/Arrivals_Khat.csv', as.is=TRUE)
+   Arr_Taimyr<-read.csv('./data/Arrivals_Khat.csv', as.is=TRUE)
+   # read raw counts
+   Counts<-read.csv('./data/Counts_Mauritania.csv', as.is=TRUE)
 } else {
    # read breeding data
    Nests<-read.csv('https://git.io/vXu3y', as.is=TRUE)
    # read crane flies
    Tipula<-read.csv('https://git.io/vXu3x', as.is=TRUE)
    # read arrivals to Khatanga
-   Arrivals_Khat<-read.csv('https://git.io/vXusf', as.is=TRUE)
+   Arr_Taimyr<-read.csv('https://git.io/vXusf', as.is=TRUE)
+   # read raw counts
+   Counts<-read.csv('https://git.io/vXuL5')
 }
-
-names(Snow)<-c('Yr', 'yday', 'yday_South')
-Nests$Date<-as.Date(Nests$Date, tz='GMT', format='%Y-%m-%d' )
-Tipula$Date<-as.Date(Tipula$Date, tz='GMT', format='%Y-%m-%d' )
-Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
-names(Arr_Wadden)[2]<-'yday'
 ```
 
-### 8.2 Estimate linear slopes of phenological events in time
+### 8.2 Merge data
 ```{r}
-summary(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2016))))
-summary(lm(yday~Yr, data=subset(Tipula, Region =='South')))
-summary(lm(yday~Yr, data=subset(Nests, Region =='South')))
-summary(lm(yday~Yr, data=Arrivals_Khat))
-summary(lm(yday~Yr, data=Arr_Wadden))
-# stayovers
-Arrivals_Khat$Departure<-Arrivals_Khat$yday-5.5
-Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
-Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
-summary(lm(Stayover~Yr, data=Stayovers))
-# for all twenty years it is going to be
-summary(lm(Stayover~I(Yr/20), data=Stayovers))
+   tmp<-merge(Arrivals_WZ[,1:2], Snowmelt[,c(1,2,3)], all=TRUE)
+   names(tmp)[2:4]<-c('Arrivals_WZ', 'Snowmelt_global', 'Snowmelt_local')
+   tmp<-merge(tmp, Arr_Taimyr[,c(1,3)], all=TRUE)
+   names(tmp)[5]<-'Arr_T'
+
+   tmp<-merge(tmp, subset(Tipula, Region=='South', select=c('Yr', 'yday')), all=TRUE)
+   names(tmp)[6]<-'Tipula'
+
+   Data_all<-subset(tmp, Yr>1992 & Yr<2017)
+   Data_all$Ref_time<-(Data_all$Arr_T - Data_all$Arrivals_WZ-5.5)
+   Nests_m<-merge(Nests[Nests$Region=='South',1:3], Snowmelt[,c(1:3)], all.x=TRUE)
+   
+   Areas<-sort(unique(Counts$Area))
+   Years<-seq( min(unique(Counts$Yr)), max(unique(Counts$Yr)), 1)
+   y.matrix<-matrix(ncol=length(Areas), nrow= length(Years))
+   for (i in 1:nrow(Counts)) {
+      y.matrix[which(Years==Counts$Yr[i]), which(Areas==Counts$Area[i])]<-Counts$Count[i]
+   }
+   Predicted_densities<-as.data.frame(cbind(Years, 
+      t(apply(Counts_model$BUGSoutput$sims.list$n_total, 2,
+      FUN=function(x) quantile(x, probs =c(0.025, 0.5, 0.975))))))
+   names(Predicted_densities)[2:4]<-c("lcl", "median","ucl")
 ```
 
-### 8.3 Plot the figure
-```{r fig.width=5, fig.height=10}
-if (Save_pdf) pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
-par(mar=c(4,4,2,6))
-# snowmelt
-plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2016),axes=FALSE, ylab='')
-axis(1)
-box()
-Snow<-subset(Snow, Yr %in% c(1992:2017))
-polygon(y=c(Snow$yday, rep(200, length(Snow$yday))), 
-        x=c(Snow$Yr, rev(Snow$Yr)),  cex=4, 
-	bg=grey(0.5), lwd=2, col='#bae4bc', border='#7bccc4')
-# time lines
-abline(h=121, col=grey(0.5))
+### 8.3 Linear models results (slopes and P-values)
+```{r}
+summary(lm(Snowmelt_global~Yr, data=Data_all))
+summary(lm(Snowmelt_local~Yr, data=Data_all))
+ 
+summary(lm(Tipula~Snowmelt_local, data=Data_all))
+summary(lm(Arr_T ~Snowmelt_local, data=Data_all))
+summary(lm(yday~jdate50_south, data=Nests_m))
+
+summary(lm(Arrivals_WZ ~ Snowmelt_global, data=Data_all))
+summary(lm(Ref_time ~ Snowmelt_global, data=Data_all))
+```
+
+### 8.4 Plot the figure
+```{r fig.width=6, fig.height=9}
+if (Save_pdf) pdf('Fig. 1.pdf', width=6, height=9, useDingbats=FALSE)
+
+   Snow_global_color<-'#8BAB8D' 
+   Tipula_color<-'#8783CE'
+   Khat_arr_color<-'#7B3575'
+   Nest_color<-'#CC79A7'
+   Arr_WZ_col<-'#7B3575'
+   Color_BA<-'#7B3575' 
+   Ref_col<-'#FB7508'
+ 
+point_lwd=0.5
+point_cex=2 
+font_cex=0.6
+axes.labels.cex=1
+x_marg=1
+par(mar=c(4,4,2,2))
+ m <- cbind(c(1, 1,1,1, 3,3, 5,5,5), c(2,2,2, 2,4,4, 6,6,6))
+ m
+ layout(m)
+
+ #######################
+ # first will be panel with snow over years.
+ 
+ plot(Snowmelt_global~Yr, data=Data_all, type='n', ylim=c(140+3, 195-5), las=1,axes=FALSE, ylab='', xlab='', xlim=c(1992, 2017))
+ box()
+ abline(h=121, col=grey(0.5))
+ abline(h=121-7.5, col=grey(0.5), lty=3)
+ abline(h=121+7.5, col=grey(0.5), lty=3)
+
+ abline(h=121, col=grey(0.5))
+ abline(h=152, col=grey(0.5))
+ abline(h=182, col=grey(0.5))
+ abline(h=152+15, col=grey(0.5), lty=2)
+
+ abline(h=182+7.5, col=grey(0.5), lty=3)
+ abline(h=152+15+7.5, col=grey(0.5), lty=3)
+ abline(h=152+7.5, col=grey(0.5), lty=3)
+ abline(h=121+15+7.5, col=grey(0.5), lty=3)
+
+ abline(v=1995, col=grey(0.5))
+ abline(v=2015, col=grey(0.5))
+ abline(v=2005, col=grey(0.5), lty=2)
+
+ abline(v=2000, col=grey(0.5), lty=3)
+ abline(v=2010, col=grey(0.5), lty=3)
+
+ axis(1)
+ mtext(side=1, 'year', line=2.5, cex=axes.labels.cex*0.8)
+ mtext(side=2, 'date of snowmelt (Taimyr)', line=1, cex=axes.labels.cex*0.8)
+  
+rect(1994, 152.15, 1996, 154.2, col='white', border=NA)
+text(y=153.2, x=1995, '1 June', cex=axes.labels.cex)
+
+rect(1994, 182.15, 1996, 184.2, col='white', border=NA)
+text(y=183.2, x=1995, '1 July', cex=axes.labels.cex)
+
 abline(h=152, col=grey(0.5))
 abline(h=182, col=grey(0.5))
-abline(h=121+15, col=grey(0.5), lty=2)
-abline(h=152+15, col=grey(0.5), lty=2)
+   
+   Snow_over_years_lm<-lm(Snowmelt_global~Yr, data=Data_all)
+   abline(Snow_over_years_lm, lwd=2)
+
+   # plot prediction lines..
+   XX_sn<-seq(1992, 2017, by=1)
+   Pred_sn<-predict(Snow_over_years_lm, newdata=data.frame(Yr=XX_sn), se.fit=TRUE)
+   Pred_sn_UCI<-Pred_sn$fit+1.96*Pred_sn$se.fit
+   Pred_sn_LCI<-Pred_sn$fit-1.96*Pred_sn$se.fit
+   lines(Pred_sn_UCI~XX_sn, lty=2)
+   lines(Pred_sn_LCI~XX_sn,  lty=2)
+
+  for (i in 1:nrow(Data_all)) {
+     points(Snowmelt_global~Yr, data=Data_all[i,], pch=21, cex=point_cex, bg=Snow_global_color, col=grey(0.4), lwd=point_lwd)
+     text(y=Data_all$Snowmelt_global[i], x=Data_all$Yr[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+   }
+   box()
+
+#########################################
+# Now panel with Taimyr phenology. 
+ X_range<-range(Data_all$Snowmelt_local)
+ plot(Tipula~Snowmelt_local, data=Data_all, type='n', ylim=c(140+3, 195-5), las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE, ylab='', xlab='')
+ box()
+ abline(h=121, col=grey(0.5))
+ abline(h=152+15, col=grey(0.5), lty=2)
+
+ abline(h=182+7.5, col=grey(0.5), lty=3)
+ abline(h=152+15+7.5, col=grey(0.5), lty=3)
+ abline(h=152+7.5, col=grey(0.5), lty=3)
+ abline(h=121+15+7.5, col=grey(0.5), lty=3)
+
+ abline(v=121, col=grey(0.5))
+ abline(v=152, col=grey(0.5))
+ abline(v=182, col=grey(0.5))
+ abline(v=121+15, col=grey(0.5), lty=2)
+ abline(v=152+15, col=grey(0.5), lty=2)
+
+ abline(v=182+7.5, col=grey(0.5), lty=3)
+ abline(v=152+15+7.5, col=grey(0.5), lty=3)
+ abline(v=152+7.5, col=grey(0.5), lty=3)
+ abline(v=121+15+7.5, col=grey(0.5), lty=3)
+ 
+axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'), cex.axis=axes.labels.cex)
+mtext(side=1, 'date of snowmelt (SE Taimyr)', line=2.5, cex=axes.labels.cex*0.8)
+mtext(side=2, 'Taimyr phenology', line=1, cex=axes.labels.cex*0.8)
+  
 # and lables for them
-par(xpd=TRUE)
-text(y=121, x=2019, '1 May')
-text(y=152, x=2019, '1 June')
-text(y=182, x=2019, '1 July')
-par(xpd=FALSE)
-# snow
-abline(lm(yday~Yr, data=subset(Snow, Yr %in% c(1994:2016))), col='#7bccc4', lwd=2)
-# tipula#8783ce
-Tipula_color<-'#8783CE'
-points(yday~Yr, data=subset(Tipula, Region=='South'), pch=21, bg=Tipula_color, lwd=1, cex=2, col=NULL )
-lm_tipula<-lm(yday~Yr, data=subset(Tipula, Region=='South'))
-lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2017)))~
-              c(1992,2017),lwd=2, col=Tipula_color)
-# nests
-points(yday~Yr, data=subset(Nests, Region=='South'), pch=21, cex=2,  lwd=1, bg='#cc79a7', col=NULL)
-lm_nests<-lm(yday~Yr, data=subset(Nests, Region=='South'))
-lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016)))~
-              c(1992,2017), lwd=2, col='#cc79a7')
-# Khat arrivals
-Khat_arr_color<-'#cbce83'
-abline(lm(yday~Yr, data=Arrivals_Khat),col=Khat_arr_color, lwd=2)
-points(yday~Yr, data=subset(Arrivals_Khat, Yr>=1993),  pch=21, cex=2, bg=Khat_arr_color, lwd=1, col=NULL)
-# Wadden arrivals..
-Width=0.25
-Arrivals_Khat$Departure<-Arrivals_Khat$yday-5.5
-Stayovers<-merge(Arr_Wadden, Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
-Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
-rect(xleft=Stayovers$Yr-Width, xright=Stayovers$Yr+Width, 
-     ybottom=Stayovers$yday, ytop=Stayovers$Departure, 
-     border=NA, col='#fdb194')
-abline(lm(yday~Yr, data=Arr_Wadden), col='#FC8D62', lwd=2)
-points(yday~Yr, data=Arr_Wadden, bg='#FC8D62', pch=21, cex=2, col=grey(0.9))
+rect(180, 152.15+15, 185, 154.2+15, col='white', border=NA)
+text(y=153.2+15, x=182, '15 June', cex=axes.labels.cex)
+
+rect(180, 152.15, 185, 154.2, col='white', border=NA)
+text(y=153.2, x=182, '1 June', cex=axes.labels.cex)
+
+rect(180, 182.15, 185, 184.4, col='white', border=NA)
+text(y=183.2, x=182, '1 July', cex=axes.labels.cex)
+
+abline(h=152, col=grey(0.5))
+abline(h=182, col=grey(0.5))
+   
+   lm_snow<-lm(Snowmelt_global~Snowmelt_local, data=Data_all)
+   abline(lm_snow, col=Snow_global_color, lwd=2)
+   
+   # Tipula
+   lm_tipula<-lm(Tipula~Snowmelt_local, data=Data_all)
+   abline(lm_tipula, col=Tipula_color, lwd=2)
+   
+   # Clutches
+   lm_nests<-lm(yday~jdate50_south, data=Nests_m) 
+   abline(lm_nests, lwd=2, col=Nest_color)
+  
+   # Arrivals
+   abline(lm(Arr_T~Snowmelt_local, data=subset(Data_all, Yr>1992)),col=Khat_arr_color, lwd=2)
+
+  for (i in 1:nrow(Data_all)) {   
+      points(Snowmelt_global~Snowmelt_local, data=Data_all[i,],  pch=21,     bg=Snow_global_color,  cex=point_cex, col=grey(0.5), lwd=point_lwd )
+	  text(y=Data_all$Snowmelt_global[i], x=Data_all$Snowmelt_local[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+  } 
+  for (i in 1:nrow(Data_all)) {
+    # Tipula
+    points(Tipula~Snowmelt_local, data=Data_all[i,], pch=21, bg=Tipula_color,  lwd=point_lwd, cex=point_cex, col=grey(0.5))
+    text(y=Data_all$Tipula[i], x=Data_all$Snowmelt_local[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+   
+   # Arrivals
+   points(Arr_T~Snowmelt_local, data=subset(Data_all, Yr>=1992)[i,],  pch=21, cex=point_cex, col=grey(0.4),  bg=Khat_arr_color,  lwd=point_lwd)
+   text(y=Data_all$Arr_T[i], x=Data_all$Snowmelt_local[i], labels=substr(Data_all$Yr[i], 3,4) , col='white',  cex=font_cex)
+  }
+   
+  # nests
+  for (i in 1:nrow(Nests_m)) {
+     points(yday~jdate50_south, data=Nests_m[i,], pch=21,   lwd=point_lwd, bg=Nest_color, cex=point_cex, col=grey(0.5))
+     text(y=Nests_m$yday[i],  x=Nests_m$jdate50_south[i], labels=substr(Nests_m$Yr[i], 3,4) , col='white',cex=font_cex)
+  }
+   box()
+   
+   ############################
+   # this will be panel B
+   plot(Arrivals_WZ~Snowmelt_global, data=Data_all, type='n', ylim=c(111, 135.5-5), las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE, ylab='', xlab='')
+ box()
+ abline(h=121, col=grey(0.5))
+ abline(h=121-7.5, col=grey(0.5), lty=3)
+ abline(h=121+7.5, col=grey(0.5), lty=3)
+
+ abline(v=152, col=grey(0.5))
+ abline(v=182, col=grey(0.5))
+ abline(v=152+15, col=grey(0.5), lty=2)
+
+ abline(v=182+7.5, col=grey(0.5), lty=3)
+ abline(v=152+15+7.5, col=grey(0.5), lty=3)
+ abline(v=152+7.5, col=grey(0.5), lty=3)
+ abline(v=121+15+7.5, col=grey(0.5), lty=3)
+
+axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'), cex.axis=axes.labels.cex)
+mtext(side=1, 'date of snowmelt (Taimyr)', line=2.5, cex=axes.labels.cex*0.8)
+mtext(side=2, 'arrival at Wadden Sea', line=1, cex=axes.labels.cex*0.8)
+
+   Arrivals_WZ_lm<-lm(Arrivals_WZ~Snowmelt_global, data=Data_all)
+   abline(Arrivals_WZ_lm, lwd=2)
+   
+   XX<-seq(X_range[1]-x_marg, X_range[2]+x_marg, by=1)
+   Pred<-predict(Arrivals_WZ_lm, newdata=data.frame(Snowmelt_global=XX), se.fit=TRUE)
+   Pred_UCI<-Pred$fit+1.96*Pred$se.fit
+   Pred_LCI<-Pred$fit-1.96*Pred$se.fit
+   lines(Pred_UCI~XX, lty=2)
+   lines(Pred_LCI~XX, lty=2)
+   
+   rect(178, 121.15, 185, 123.6, col='white', border=NA)
+   text(y=122.35, x=182, '1 May', cex=axes.labels.cex)
+   abline(h=121, col=grey(0.5))
+   
+  for (i in 1:nrow(Data_all)) {
+     points(Arrivals_WZ~Snowmelt_global, data=Data_all[i,], pch=21, bg=Arr_WZ_col, col=grey(0.4),  lwd=point_lwd, cex=point_cex)
+     text(y=Data_all$Arrivals_WZ[i], x=Data_all$Snowmelt_globa[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+   }
+   box()
+
+   ############################
+   # this will be panel D
+   plot(Ref_time~Snowmelt_global, data=Data_all, type='n', las=1, xlim=c(X_range[1]-x_marg, X_range[2]+x_marg),axes=FALSE,  xlab='', ylab='', ylim=c(13.5-0.5+2, 37-4.5+2))
+   box()
+   axis(2, las=1)
+   mtext(side=2, 'refueling time (d)', line=2.5, cex=axes.labels.cex*0.8)
+
+   axis(1, at=c(152, 152+15, 182), labels=c('1 June', '15 June', '1 July'), cex.axis=axes.labels.cex)
+   mtext(side=1, 'date of snowmelt (Taimyr)', line=2.5, cex=axes.labels.cex*0.8)
+   
+ abline(v=152, col=grey(0.5))
+ abline(v=182, col=grey(0.5))
+ abline(v=152+15, col=grey(0.5), lty=2)
+ abline(h=25, col=grey(0.5))
+ abline(h=25-7.5, col=grey(0.5), lty=3)
+ abline(h=25+7.5, col=grey(0.5), lty=3)
+ 
+ abline(v=182+7.5, col=grey(0.5), lty=3)
+ abline(v=152+15+7.5, col=grey(0.5), lty=3)
+ abline(v=152+7.5, col=grey(0.5), lty=3)
+ abline(v=121+15+7.5, col=grey(0.5), lty=3)
+
+   Ref_time_lm<-lm(Ref_time~Snowmelt_global, data=Data_all)
+   abline(Ref_time_lm, lwd=2)
+
+   # plot prediction lines..
+   XX<-seq(X_range[1]-x_marg, X_range[2]+x_marg, by=1)
+   Pred_ref<-predict(Ref_time_lm, newdata=data.frame(Snowmelt_global=XX), se.fit=TRUE)
+   Pred_ref_UCI<-Pred_ref$fit+1.96*Pred_ref$se.fit
+   Pred_ref_LCI<-Pred_ref$fit-1.96*Pred_ref$se.fit
+   lines(Pred_ref_UCI~XX, lty=2)
+   lines(Pred_ref_LCI~XX, lty=2)
+
+ for (i in 1:nrow(Data_all)) {
+     points(Ref_time~Snowmelt_global, data=Data_all[i,], pch=21, cex=point_cex, bg=Ref_col, col=grey(0.4),  lwd=point_lwd)
+     text(y=Data_all$Ref_time[i], x=Data_all$Snowmelt_globa[i], labels=substr(Data_all$Yr[i], 3,4) , col='white', cex=font_cex)
+ }
+
+# panel E
+	  
+plot(median~Years, data=Predicted_densities, ylim=c(7000, 27000),
+     type='n', las=1, ylab='', axes=FALSE, xlab='', xlim=c(1992, 2017))
+
+abline(h=15000,  col=grey(0.5), lwd=1)	 
+abline(h=25000,  col=grey(0.5), lty=2)	 
+abline(h=c(10000, 20000),  col=grey(0.5), lty=3)	 
+abline(h=15000,  col=grey(0.5), lty=2)	 
+abline(v=2005, lty=2, col=grey(0.5))	 
+
+ abline(v=1995, col=grey(0.5))
+ abline(v=2015, col=grey(0.5))
+ abline(v=2005, col=grey(0.5), lty=2)
+ abline(v=2000, col=grey(0.5), lty=3)
+ abline(v=2010, col=grey(0.5), lty=3)
+
+ axis(1)
+ mtext(side=1, 'year', line=2.5, cex=axes.labels.cex*0.8)
+ axis(2, at=seq(10000, 25000, by=5000), label=seq(10000, 25000, by=5000)/1000, las=1)
+ mtext(side=2, 'count (x1000)', line=2.5, cex=axes.labels.cex*0.8)
+
+lines(x=Predicted_densities$Years, Predicted_densities$ucl, lty=2)
+lines(x=Predicted_densities$Years, Predicted_densities$lcl, lty=2)
+lines(median~Years, data=Predicted_densities, lwd=2)
+	 
+points(rowSums(y.matrix)~ Years,  pch=21, cex=point_cex, bg=Color_BA, col=grey(0.4),  lwd=point_lwd)
+text(y=rowSums(y.matrix), x=Years, labels=substr(Years, 3,4) , col='white', cex=font_cex)
 box()
 if (Save_pdf) dev.off()
 ```
@@ -1159,7 +1393,7 @@ Design_males_s[,6]<-log(Stopover_before_now)
 ```
 
 ### 9.3 Female plot
-First I  plot female figure (Figure 2) and then male figure for extended data Fig 2.
+First I  plot female figure (Figure 2) and then male figure for Supplementary Materials Fig S5.
 
 ```{r fig.width=6, fig.height=9}
 if (Save_pdf) pdf(file='Figure 2.pdf', useDingbats=FALSE, width=6, height=9)
@@ -1193,7 +1427,7 @@ par(xpd=FALSE)
 
 #axis(4, labels=FALSE)
 axis(2, cex.axis=axes.labels.cex, las=1)
-mtext(side=2, 'refuelling time (d)', line=3,cex=axes.labels.cex,)
+mtext(side=2, 'refueling time (d)', line=3,cex=axes.labels.cex,)
 abline(lm(Stayover~Yr, data=Stayovers), lwd=2)
 # 95%CI
 XX<-seq(1992,2018, by=0.1)
@@ -1218,7 +1452,7 @@ Female_Image<-as.image(x=Prediction.matrix_cur[,c(5,6)], Z=Prediction.matrix_cur
 
 plot(0,0, type='n', xaxt='n', yaxt='n', xlab='', ylab='', bty='n')  # make an empty plot
 par(xpd=TRUE)
-mtext("refuelling rate (g/d)", side=1, line=3, cex=axes.labels.cex)
+mtext("refueling rate (g/d)", side=1, line=3, cex=axes.labels.cex)
 par(xpd=FALSE)
 
 par(new=T)
@@ -1262,7 +1496,7 @@ mtext(side=1, 'year', line=3, cex=axes.labels.cex)
 par(xpd=FALSE)
 
 axis(2, las=1, cex.axis=axes.labels.cex)
-mtext(side=2, 'refuelling rate (g/d)', line=3,cex=axes.labels.cex)
+mtext(side=2, 'refueling rate (g/d)', line=3,cex=axes.labels.cex)
 abline(lm(Fuelling_slope_females~Yr, data=Stayovers), lwd=2)
 
 # 95%CI
@@ -1300,11 +1534,11 @@ axis(1, cex.axis=axes.labels.cex)
 axis(3, labels=FALSE)
 
 par(xpd=TRUE)
-mtext(side=1, 'refuelling rate (g/d)', line=3, cex=axes.labels.cex)
+mtext(side=1, 'refueling rate (g/d)', line=3, cex=axes.labels.cex)
 par(xpd=FALSE)
 
 axis(2,cex.axis=axes.labels.cex, las=1)
-mtext(side=2, 'refuelling time (d)', line=3,cex=axes.labels.cex)
+mtext(side=2, 'refueling time (d)', line=3,cex=axes.labels.cex)
 
 abline(lm(Stayover~Fuelling_slope_females, data=Stayovers), lwd=2)
 # 95%CI
@@ -1362,7 +1596,7 @@ plot(fuelling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms$lugworms_ad,
 	 
 axis(2, cex.axis=axes.labels.cex, las=1)
 
-mtext(side=2, 'refuelling rate (g/d)', line=3, cex=axes.labels.cex)
+mtext(side=2, 'refueling rate (g/d)', line=3, cex=axes.labels.cex)
 
 axis(1, las=1, cex.axis=axes.labels.cex)
 par(xpd=TRUE)
@@ -1390,7 +1624,6 @@ if (Save_pdf) dev.off()
 
 ```{r}
 # stayover duration
-
 library(nlme)
 M1<-lm(Stayover~Yr, data=Stayovers)
 Stayovers$resid_stayover<-NA
@@ -1404,8 +1637,7 @@ M1_gls_AR1<-gls(Stayover~Yr, data=Stayovers, na.action = na.omit, correlation = 
 AIC(M1_gls, M1_gls_AR1)
 
 ##########
-# refuelling rate
-
+# refueling rate
 
 M2<-lm(Fuelling_slope_females~Yr, data=Stayovers)
 Stayovers$resid_fsf<-NA
@@ -1421,7 +1653,6 @@ AIC(M2_gls, M2_gls_AR1)
 ###########
 # lugworms
 
- 
 M3<-lm(lugworms_ad~Yr, data=Stayovers)
 summary(M3)
 
@@ -1434,7 +1665,6 @@ M3_gls<-gls(lugworms_ad~Yr, data=Stayovers, na.action = na.omit)
 M3_gls_AR1<-gls(lugworms_ad~Yr, data=Stayovers, na.action = na.omit, correlation=corAR1(form = ~Yr))
 
 AIC(M3_gls, M3_gls_AR1)
-
  
 ########################################
 # fuelling by lugworms
@@ -1457,10 +1687,9 @@ AIC(M4_gls, M4_gls_AR1)
 ```
 
 ### 9.5 Male plot
-Extended data Fig 2.
+Supplementary Materials Fig S5.
 
 ```{r fig.width=6, fig.height=9}
-
 if (Save_pdf) pdf(file='Males_plot.pdf', useDingbats=FALSE, width=6, height=9)
 
 par(mfrow=c(3,2))
@@ -1482,7 +1711,7 @@ mtext(side=1, 'year', line=3, cex=axes.labels.cex)
 par(xpd=FALSE)
 
 axis(2, cex.axis=axes.labels.cex, las=1)
-mtext(side=2, 'refuelling time (d)', line=3,cex=axes.labels.cex,)
+mtext(side=2, 'refueling time (d)', line=3,cex=axes.labels.cex,)
 abline(lm(Stayover~Yr, data=Stayovers), lwd=2)
 # 95%CI
 XX<-seq(1992,2018, by=0.1)
@@ -1509,7 +1738,7 @@ Male_Image<-as.image(x=Prediction.matrix_cur_males[,c(7,6)],
 
 plot(0,0, type='n', xaxt='n', yaxt='n', xlab='', ylab='', bty='n')  # make an empty plot
 par(xpd=TRUE)
-mtext("refuelling rate (g/d)", side=1, line=3, cex=axes.labels.cex)
+mtext("refueling rate (g/d)", side=1, line=3, cex=axes.labels.cex)
 par(xpd=FALSE)
 
 par(new=T)
@@ -1552,7 +1781,7 @@ mtext(side=1, 'year', line=3, cex=axes.labels.cex)
 par(xpd=FALSE)
 
 axis(2, las=1, cex.axis=axes.labels.cex)
-mtext(side=2, 'refuelling rate (g/d)', line=3,cex=axes.labels.cex)
+mtext(side=2, 'refueling rate (g/d)', line=3,cex=axes.labels.cex)
 abline(lm(Fuelling_slope_males~Yr, data=Stayovers), lwd=2)
 
 # 95%CI
@@ -1589,11 +1818,11 @@ axis(1, cex.axis=axes.labels.cex)
 axis(3, labels=FALSE)
 
 par(xpd=TRUE)
-mtext(side=1, 'refuelling rate (g/d)', line=3, cex=axes.labels.cex)
+mtext(side=1, 'refueling rate (g/d)', line=3, cex=axes.labels.cex)
 par(xpd=FALSE)
 
 axis(2,cex.axis=axes.labels.cex, las=1)
-mtext(side=2, 'refuelling time (d)', line=3,cex=axes.labels.cex)
+mtext(side=2, 'refueling time (d)', line=3,cex=axes.labels.cex)
 
 abline(lm(Stayover~Fuelling_slope_males, data=Stayovers), lwd=2)
 # 95%CI
@@ -1651,7 +1880,7 @@ plot(fuelling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms$lugworms_ad,
 	 
 axis(2, cex.axis=axes.labels.cex, las=1)
 
-mtext(side=2, 'refuelling rate (g/d)', line=3, cex=axes.labels.cex)
+mtext(side=2, 'refueling rate (g/d)', line=3, cex=axes.labels.cex)
 
 axis(1, las=1, cex.axis=axes.labels.cex)
 par(xpd=TRUE)
@@ -1675,9 +1904,94 @@ box()
 if (Save_pdf) dev.off()
 ```
 
-## 10. Plot capture data with slopes (Extended data Figure 2 and 3)
+## 10. Plot Figure S1, Phenological data over time
+### 10.1 Load data 
+```{r}
+   # read Snow
+   Snow<-read.csv('./results/Snow_remote.csv', as.is=TRUE)
+   # read arrivals to Wadden Sea (predicted by arrival model)
+   Arr_Wadden<-read.csv('./results/Arrivals_migration_model.csv')
+if (Use_local_data) {
+   # read breeding data
+   Nests<-read.csv('./data/Nests.csv', as.is=TRUE)
+   # read crane flies
+   Tipula<-read.csv('./data/Tipula.csv', as.is=TRUE)
+   # read arrivals to Khatanga
+   Arrivals_Khat<-read.csv('./data/Arrivals_Khat.csv', as.is=TRUE)
+} else {
+   # read breeding data
+   Nests<-read.csv('https://git.io/vXu3y', as.is=TRUE)
+   # read crane flies
+   Tipula<-read.csv('https://git.io/vXu3x', as.is=TRUE)
+   # read arrivals to Khatanga
+   Arrivals_Khat<-read.csv('https://git.io/vXusf', as.is=TRUE)
+}
 
-## 10.1 Load data 
+names(Snow)<-c('Yr', 'yday', 'yday_South')
+Nests$Date<-as.Date(Nests$Date, tz='GMT', format='%Y-%m-%d' )
+Tipula$Date<-as.Date(Tipula$Date, tz='GMT', format='%Y-%m-%d' )
+Arrivals_Khat$Date<-as.Date(Arrivals_Khat$Date, tz='GMT', format='%Y-%m-%d' )
+names(Arr_Wadden)[2]<-'yday'
+```
+
+### 10.2 Plot the figure
+```{r fig.width=5, fig.height=10}
+if (Save_pdf) pdf('Taimyr_and_wadden.pdf', width=5, height=10, useDingbats=FALSE)
+par(mar=c(4,4,2,6))
+  Snow_global_color<-'#bae4bc'
+   Snow_local_color<-'#8BAB8D' 
+   Tipula_color<-'#8783CE'
+   Khat_arr_color<-'#7B3575'
+   Nest_color<-'#CC79A7'
+   Arr_WZ_col<-'#7B3575'
+   Color_BA<-'#7B3575' 
+# snowmelt
+plot(yday~Yr, data=Snow, type='n', ylim=c(115, 190), las=1, xlim=c(1993, 2016),axes=FALSE, ylab='')
+
+axis(1)
+box()
+Snow<-subset(Snow, Yr %in% c(1992:2017))
+polygon(y=c(Snow$yday, rep(200, length(Snow$yday))), 
+        x=c(Snow$Yr, rev(Snow$Yr)),  cex=4, 
+	bg=grey(0.5), lwd=2, col=Snow_global_color, border='#7bccc4')
+points(yday_South~Yr,  data=Snow, bg=Snow_local_color, cex=2, col=NULL, pch=21)
+
+# time lines
+abline(h=121, col=grey(0.5))
+abline(h=152, col=grey(0.5))
+abline(h=182, col=grey(0.5))
+abline(h=121+15, col=grey(0.5), lty=2)
+abline(h=152+15, col=grey(0.5), lty=2)
+# and lables for them
+par(xpd=TRUE)
+text(y=121, x=2019, '1 May')
+text(y=152, x=2019, '1 June')
+text(y=182, x=2019, '1 July')
+par(xpd=FALSE)
+# snow
+abline(lm(yday_South~Yr, data=subset(Snow, Yr %in% c(1994:2016))), col=Snow_local_color, lwd=2)
+# tipula #8783ce
+points(yday~Yr, data=subset(Tipula, Region=='South'), pch=21, bg=Tipula_color, lwd=1, cex=2, col=NULL )
+lm_tipula<-lm(yday~Yr, data=subset(Tipula, Region=='South'))
+lines(predict(lm_tipula, newdata=data.frame(Yr=c(1992,2017)))~
+              c(1992,2017),lwd=2, col=Tipula_color)
+# nests
+points(yday~Yr, data=subset(Nests, Region=='South'), pch=21, cex=2,  lwd=1, bg=Nest_color, col=NULL)
+lm_nests<-lm(yday~Yr, data=subset(Nests, Region=='South'))
+lines(predict(lm_nests, newdata=data.frame(Yr=c(1992,2016)))~
+              c(1992,2017), lwd=2, col=Nest_color)
+# Khat arrivals
+abline(lm(yday~Yr, data=Arrivals_Khat),col=Khat_arr_color, lwd=2)
+points(yday~Yr, data=subset(Arrivals_Khat, Yr>=1993),  pch=21, cex=2, bg=Khat_arr_color, lwd=1, col=NULL)
+
+abline(lm(yday~Yr, data=Arr_Wadden), col=Arr_WZ_col, lwd=2)
+points(yday~Yr, data=Arr_Wadden, bg=Arr_WZ_col, pch=21, cex=2, col=grey(0.9))
+box()
+if (Save_pdf) dev.off()
+```
+
+## 11 Plot capture data with slopes (Figures S3 and S4)
+### 11.1
 ```{r}
    # a. get arrivals to the Wadden Sea
    Arrivals_WS<-read.csv('./results/Arrivals_migration_model.csv')
@@ -1694,7 +2008,7 @@ if (Use_local_data) {
 }
 ```
 
-## 10.2 Prepare data for plotting
+### 11.2 Prepare data for plotting
 ```{r}
    #names(Arrivals_WS)[2]<-'yday'
    Arrivals<-merge(Arrivals_WS, Arrival_weights)
@@ -1726,7 +2040,7 @@ if (Use_local_data) {
    Lwd<-1
 ```
 
-## 10.3 Plot figure for males
+### 11.3 Plot figure for males
 ```{r fig.width=10, fig.height=10}
    library(ggplot2)
    p<-ggplot(data = Capture_data_males, aes(x = yday, y = Mass)) +
@@ -1749,7 +2063,7 @@ if (Use_local_data) {
                         device='pdf', width=10, height=10, useDingbats=FALSE)
 ```
 
-## 10.4 Plot figure for females
+### 11.4 Plot figure for females
 ```{r fig.width=10, fig.height=10}
    p1<-ggplot(data = Capture_data_females, aes(x = yday, y = Mass)) +
    geom_point(col='#fdb194', data=subset(Capture_data_females, Site!='Castricum')) +
@@ -1771,7 +2085,7 @@ if (Use_local_data) {
                             device='pdf', width=10, height=10, useDingbats=FALSE)
 ```
 
-## 10.5 Plot legend
+### 11.5 Plot legend
 ```{r fig.width=2, fig.height=2}
    Leg_frame<-data.frame(x=c(-1, 1), y=c(-1, 1))
    X_labels<--0.85
@@ -1799,7 +2113,7 @@ if (Use_local_data) {
 
    annotate("segment", x=X_labels-0.1, xend=X_labels+0.1, y=-0.25-0.075, yend=-0.25+0.075,
             col='#D55E00', lwd=1.5)+
-   annotate("text", x=X_text, y = -0.25, label = "refuelling slope", hjust = 0) +
+   annotate("text", x=X_text, y = -0.25, label = "refueling slope", hjust = 0) +
 
    annotate("segment", x=X_labels, xend=X_labels, y=-0.5-0.075, yend=-0.5+0.075,
             col='#56B4E9', lwd=1.5)+
