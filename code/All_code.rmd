@@ -36,10 +36,10 @@ if (Use_local_data) {
    download.file('https://git.io/vXAZ1', destfile='./results/Snow_remote.csv')
    download.file('https://git.io/vXgZG', destfile='./results/migration_model.RDS', mode='wb')
    download.file('https://git.io/vXED0', destfile='./results/Arrivals_migration_model.csv')
-   download.file('https://git.io/vXgvv', destfile='./results/fuelling_model.RDS',mode='wb')
+   download.file('https://git.io/vXgvv', destfile='./results/fueling_model.RDS',mode='wb')
    download.file('https://git.io/v7D8z', destfile='./results/phenology_SEM.RDS',mode='wb')
    download.file('https://git.io/vXEbX', destfile='./results/Arrival_weights.csv')
-   download.file('https://git.io/vXEb5', destfile='./results/Fuelling_slopes.csv')
+   download.file('https://git.io/vXEb5', destfile='./results/Fueling_slopes.csv')
    download.file('https://git.io/vXueC', destfile='./results/survival_result.RDS',mode='wb')
    download.file('https://git.io/vXuqH', destfile='./results/Mauritania_counts_model.RDS',mode='wb')
 }
@@ -665,7 +665,7 @@ Data on both sites show correlated changes over years (Pearson's _r_=0.86) allow
 ### 5.4 Formulate model
 ```{r results='hide'}
 {
-sink("fuelling_model.jags")
+sink("fueling_model.jags")
 
 cat("
     model {
@@ -674,13 +674,13 @@ cat("
        T0[i] ~ dnorm(mu_T0[i2k[i]], tau_T0[i2k[i], i2s[i]])
     }
 
-    # Michaelins - Menten or functional response type II equation for fuelling on lugworms
+    # Michaelins - Menten or functional response type II equation for fueling on lugworms
     for(k in 1:K) {
        Alpha_t[k,1] ~ dnorm(((11*Lugworms[k])/(K_sat_m+Lugworms[k])),
 	                         1/sigma2_alpha)
        Alpha_t[k,2] ~ dnorm(((13.2*Lugworms[k])/(K_sat_f+Lugworms[k])),
                              1/sigma2_alpha_fem)
-    # 11 for males and 13.2 for females are fuelling maximum rates measured by Prokosch
+    # 11 for males and 13.2 for females are fueling maximum rates measured by Prokosch
 	}
 
     # Likelihood
@@ -738,27 +738,27 @@ jags.params=c("Alpha_t", "sigma2_alpha", "sigma2_alpha_fem", "K_sat_m", "K_sat_f
 ```{r results='hide'}
 if (Run_everything) {
    # following run takes ~ 2 minutes brt
-   fuelling_model<- jags(data=Data, inits, parameters=jags.params,
-                    "fuelling_model.jags", n.chains = 2, n.thin = 10,
+   fueling_model<- jags(data=Data, inits, parameters=jags.params,
+                    "fueling_model.jags", n.chains = 2, n.thin = 10,
 		    n.iter = 10000, n.burnin = 1000, working.directory = getwd())
-   saveRDS(fuelling_model, file='./results/fuelling_model.RDS')
+   saveRDS(fueling_model, file='./results/fueling_model.RDS')
 }
-fuelling_model<-readRDS('./results/fuelling_model.RDS')
+fueling_model<-readRDS('./results/fueling_model.RDS')
 ```
 
 ### 5.7 Explore and save model results
 ```{r}
-print(fuelling_model)
+print(fueling_model)
 Years<-unique(as.numeric((Data_to_model$Yr)))
 # save estimated slopes for survival model
-Fuelling_slopes<-data.frame(Yr=Years,
-         Fuelling_slope_males=fuelling_model$BUGSoutput$mean$Alpha_t[,1],
-         Fuelling_slope_females=fuelling_model$BUGSoutput$mean$Alpha_t[,2],
-         Fuelling_slope_males_predicted=11*Lugworms_vec/
-		                 (fuelling_model$BUGSoutput$mean$K_sat_m[1]+Lugworms_vec),
-         Fuelling_slope_females_predicted=13.2*Lugworms_vec/
-		                 (fuelling_model$BUGSoutput$mean$K_sat_f[1]+Lugworms_vec))
-write.csv(Fuelling_slopes, file='./results/Fuelling_slopes.csv', row.names=FALSE)
+Fueling_slopes<-data.frame(Yr=Years,
+         Fueling_slope_males=fueling_model$BUGSoutput$mean$Alpha_t[,1],
+         Fueling_slope_females=fueling_model$BUGSoutput$mean$Alpha_t[,2],
+         Fueling_slope_males_predicted=11*Lugworms_vec/
+		                 (fueling_model$BUGSoutput$mean$K_sat_m[1]+Lugworms_vec),
+         Fueling_slope_females_predicted=13.2*Lugworms_vec/
+		                 (fueling_model$BUGSoutput$mean$K_sat_f[1]+Lugworms_vec))
+write.csv(Fueling_slopes, file='./results/Fueling_slopes.csv', row.names=FALSE)
 ```
 
 ## 6. Departure fuel load effects on survival from capture-recapture data
@@ -772,7 +772,7 @@ library('RMark')
    #get arrival mass
    Arrival_weights<-read.csv('./results/Arrival_weights.csv')
    #get annual slopes
-   Fuelling_slopes<-read.csv('./results/Fuelling_slopes.csv')
+   Fueling_slopes<-read.csv('./results/Fueling_slopes.csv')
 if (Use_local_data) {
    # load main CR data
    Full_CH<-read.csv('./data/Full_CH.csv', colClasses='character', row.names='code')
@@ -793,7 +793,7 @@ if (Use_local_data) {
    # b. get arrival mass
    Arrival_weights<-read.csv('./results/Arrival_weights.csv')
    # c. get annual slopes
-   Fuelling_slopes<-read.csv('./results/Fuelling_slopes.csv')
+   Fueling_slopes<-read.csv('./results/Fueling_slopes.csv')
 
 Departures_Wadden<-Arrival_Taimyr[,c(1,3)]
 Departures_Wadden$yday<-Departures_Wadden$yday-5.5
@@ -802,23 +802,23 @@ names(Departures_Wadden)[2]<-'departure'
    
 # now we combine all these measurements.
 All_staging_data<-merge(merge(merge(Arrivals_WS[,1:2], 
-                        Arrival_weights), Fuelling_slopes),Departures_Wadden)
+                        Arrival_weights), Fueling_slopes),Departures_Wadden)
 All_staging_data$Stopover<-(All_staging_data$departure-All_staging_data$arrival)
 
-All_staging_data$log_fuelling_slope_females_st<-
-           scale(log(All_staging_data$Fuelling_slope_females), center=TRUE, scale=FALSE)
-All_staging_data$log_fuelling_slope_males_st<-
-           scale(log(All_staging_data$Fuelling_slope_males), center=TRUE, scale=FALSE)
+All_staging_data$log_fueling_slope_females_st<-
+           scale(log(All_staging_data$Fueling_slope_females), center=TRUE, scale=FALSE)
+All_staging_data$log_fueling_slope_males_st<-
+           scale(log(All_staging_data$Fueling_slope_males), center=TRUE, scale=FALSE)
 All_staging_data$log_Stopover<-log((All_staging_data$departure-All_staging_data$arrival))
  
 Departure_Weight_gain_Females<- cbind( group='f', subset(All_staging_data,
-    select=c(Yr, log_fuelling_slope_females_st, log_Stopover)))
-names(Departure_Weight_gain_Females)[3]<-'log_fuelling_slope'
+    select=c(Yr, log_fueling_slope_females_st, log_Stopover)))
+names(Departure_Weight_gain_Females)[3]<-'log_fueling_slope'
 names(Departure_Weight_gain_Females)[4]<-'log_Stopover'
 
 Departure_Weight_gain_Males<- cbind(group='m', subset(All_staging_data,
-    select=c(Yr, log_fuelling_slope_males_st, log_Stopover)))
-names(Departure_Weight_gain_Males)[3]<-'log_fuelling_slope'
+    select=c(Yr, log_fueling_slope_males_st, log_Stopover)))
+names(Departure_Weight_gain_Males)[3]<-'log_fueling_slope'
 names(Departure_Weight_gain_Males)[4]<-'log_Stopover'
 
 Departure_Weight_gain<-rbind(Departure_Weight_gain_Females, Departure_Weight_gain_Males)
@@ -849,11 +849,11 @@ if (exists('cml')) {
 # specify model
 # Survival part
 Phi.dot=list(formula=~1)
-Phi.1=list(formula=~two_plus + log_fuelling_slope*SEX+log_Stopover*SEX)
-Phi.2=list(formula=~two_plus + log_fuelling_slope*SEX+log_Stopover+SEX)
-Phi.3=list(formula=~two_plus + log_fuelling_slope+log_Stopover*SEX)
+Phi.1=list(formula=~two_plus + log_fueling_slope*SEX+log_Stopover*SEX)
+Phi.2=list(formula=~two_plus + log_fueling_slope*SEX+log_Stopover+SEX)
+Phi.3=list(formula=~two_plus + log_fueling_slope+log_Stopover*SEX)
 Phi.4=list(formula=~two_plus + log_Stopover*SEX)
-Phi.5=list(formula=~two_plus + log_fuelling_slope*SEX)
+Phi.5=list(formula=~two_plus + log_fueling_slope*SEX)
 Phi.8=list(formula=~two_plus + Time*SEX)
 Phi.9=list(formula=~two_plus + SEX)
 # Resighting part   
@@ -1326,11 +1326,11 @@ if (Save_pdf) dev.off()
 
 ### 9.1 Load data
 ```{r}
-   fuelling_model<-readRDS('./results/fuelling_model.RDS')
+   fueling_model<-readRDS('./results/fueling_model.RDS')
    # read arrivals to Wadden Sea (predicted by arrival model)
    Arr_Wadden<-read.csv(file='./results/Arrivals_migration_model.csv')   
    
-   Fuelling_slopes<-read.csv('./results/Fuelling_slopes.csv')
+   Fueling_slopes<-read.csv('./results/Fueling_slopes.csv')
 
    Res<-readRDS('./results/survival_result.RDS')
    Res_adj<-adjust.chat(Res, chat=1.1186307)
@@ -1356,26 +1356,26 @@ if (Use_local_data) {
         Arrivals_Khat[,-which(names(Arrivals_Khat)=='yday')], by='Yr')
    Stayovers$Stayover<- Stayovers$Departure- Stayovers$yday
    Stayovers<-merge(Stayovers, subset(Lugworms, Yr>1995), all.x=TRUE)
-   Stayovers<-merge(Stayovers, Fuelling_slopes, all=TRUE)
+   Stayovers<-merge(Stayovers, Fueling_slopes, all=TRUE)
 ```
 Create grid for prediction
 ```{r}
-Scale_females<-scale(log(All_staging_data$Fuelling_slope_females))
-Scale_males<-scale(log(All_staging_data$Fuelling_slope_males))
+Scale_females<-scale(log(All_staging_data$Fueling_slope_females))
+Scale_males<-scale(log(All_staging_data$Fueling_slope_males))
 
-Prediction.matrix<-expand.grid(log_fuelling_slope=seq(1.25-1.717, 2.35-1.717, by=0.001),
+Prediction.matrix<-expand.grid(log_fueling_slope=seq(1.25-1.717, 2.35-1.717, by=0.001),
                                log_Stopover=seq(2.75, 3.6, by=0.001))
 
 Design_females<-matrix(nrow=nrow(Prediction.matrix), ncol=20, data=0)
 Design_females[,1]<-1
 Design_females[,2]<-1
-Design_females[,3]<-Prediction.matrix$log_fuelling_slope
+Design_females[,3]<-Prediction.matrix$log_fueling_slope
 Design_females[,4]<-Prediction.matrix$log_Stopover
 
 Design_males<-matrix(nrow=nrow(Prediction.matrix), ncol=20, data=0)
 Design_males[,1]<-1
 Design_males[,2]<-1
-Design_males[,3]<-Prediction.matrix$log_fuelling_slope
+Design_males[,3]<-Prediction.matrix$log_fueling_slope
 Design_males[,4]<-Prediction.matrix$log_Stopover
 Design_males[,5]<-1
 Design_males[,6]<-Prediction.matrix$log_Stopover
@@ -1384,23 +1384,23 @@ Prediction.matrix$Prediction_females<-
      plogis(Design_females%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
 Prediction.matrix$Prediction_males<-
      plogis(Design_males%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
-Prediction.matrix$fuelling_slope_females<-
-     exp(Prediction.matrix$log_fuelling_slope+attr(Scale_females,"scaled:center"))
+Prediction.matrix$fueling_slope_females<-
+     exp(Prediction.matrix$log_fueling_slope+attr(Scale_females,"scaled:center"))
 Prediction.matrix$Stopover<-exp(Prediction.matrix$log_Stopover)			
-Prediction.matrix$fuelling_slope_males<-
-     exp(Prediction.matrix$log_fuelling_slope+attr(Scale_males,"scaled:center"))
+Prediction.matrix$fueling_slope_males<-
+     exp(Prediction.matrix$log_fueling_slope+attr(Scale_males,"scaled:center"))
 
 M1<-(lm(Stayover~Yr, data=Stayovers))
 Stopover_before_now<-predict(M1, newdata=data.frame(Yr=c(1995, 2016)))
 
-M3<-lm(Fuelling_slope_males~Yr, data=Stayovers)
+M3<-lm(Fueling_slope_males~Yr, data=Stayovers)
 Slope_males_before_now<-predict(M3, newdata=data.frame(Yr=c(1995, 2016)))
 
-M4<-lm(Fuelling_slope_females~Yr, data=Stayovers)
+M4<-lm(Fueling_slope_females~Yr, data=Stayovers)
 Slope_females_before_now<-predict(M4, newdata=data.frame(Yr=c(1995, 2016)))
 
-M5<-(lm(Stayover~Fuelling_slope_females, data=Stayovers))
-M6<-(lm(Stayover~Fuelling_slope_males, data=Stayovers))
+M5<-(lm(Stayover~Fueling_slope_females, data=Stayovers))
+M6<-(lm(Stayover~Fueling_slope_males, data=Stayovers))
 M7<-lm(lugworms_ad~Yr, data=Lugworms)
 
 Design_females_s<-matrix(nrow=2, ncol=20, data=0)
@@ -1473,8 +1473,8 @@ points(Stopover_before_now[2]~I(2016), pch=22, col=grey(0.45), bg=Late_color, ce
 
 Prediction.matrix_cur<-subset(Prediction.matrix,  Stopover>=17 & 
                       Stopover<=35 & 
-					  fuelling_slope_females<=10.5 &
-					  fuelling_slope_females>=4)
+					  fueling_slope_females<=10.5 &
+					  fueling_slope_females>=4)
 Female_Image<-as.image(x=Prediction.matrix_cur[,c(5,6)], Z=Prediction.matrix_cur$Prediction_females)
 
 plot(0,0, type='n', xaxt='n', yaxt='n', xlab='', ylab='', bty='n')  # make an empty plot
@@ -1496,7 +1496,7 @@ contour(Female_Image,add=T, levels=plogis(Design_females_s%*%as.matrix(summary(M
 
 contour(Female_Image,add=T, levels=c(0.8, 0.85, 0.9, 0.95), col=grey(0.5), labcex=1)
 
-points(Stayover~Fuelling_slope_females, data=Stayovers, pch=21, col='white', bg='black', cex=2)
+points(Stayover~Fueling_slope_females, data=Stayovers, pch=21, col='white', bg='black', cex=2)
 box()
 
 ScaleX<-seq(Slope_females_before_now[1], 9.65, length.out=11)
@@ -1511,7 +1511,7 @@ points(Stopover_before_now[2]~Slope_females_before_now[2], pch=22, col=grey(0.45
 # Now panel 3
 
 par(mar=c(4, 5,2,2 ))
-plot(Stayovers$Fuelling_slope_females~Stayovers$Yr, type='p',  ylab='',
+plot(Stayovers$Fueling_slope_females~Stayovers$Yr, type='p',  ylab='',
      las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',  cex=2, pch=21,
 	 bg='black', col='white', las=1, ylim=c(4,10.5))
 	 
@@ -1524,7 +1524,7 @@ par(xpd=FALSE)
 
 axis(2, las=1, cex.axis=axes.labels.cex)
 mtext(side=2, 'refueling rate (g/d)', line=3,cex=axes.labels.cex)
-abline(lm(Fuelling_slope_females~Yr, data=Stayovers), lwd=2)
+abline(lm(Fueling_slope_females~Yr, data=Stayovers), lwd=2)
 
 # 95%CI
 XX<-seq(1992,2018, by=0.1)
@@ -1547,14 +1547,14 @@ points(Stopover_before_now[1]~Slope_females_before_now[1], pch=21, bg=Early_colo
 
 points(Slope_females_before_now[1]~I(2016), pch=22, bg='white',col=Late_color, cex=4, lwd=3)
 points(I(9.65)~I(2016), pch=22, bg='black', col=Late_color, cex=4, lwd=3)
-points(Stayovers$Fuelling_slope_females~Stayovers$Yr, cex=2, pch=21, bg='black', col='white')
+points(Stayovers$Fueling_slope_females~Stayovers$Yr, cex=2, pch=21, bg='black', col='white')
 
 ##-------------------------------------
 # Now panel 4
 
 par(mar=c(4, 5,2,2 ))
 par(xaxs='i')
-plot(Stayovers$Stayover~Stayovers$Fuelling_slope_females, type='p',  ylim=c(17,35), xlim=c(4,10.5) ,ylab='',
+plot(Stayovers$Stayover~Stayovers$Fueling_slope_females, type='p',  ylim=c(17,35), xlim=c(4,10.5) ,ylab='',
      las=1, xlab='', cex=2, axes=F, yaxs='i', pch=21, col='white', bg='black')
 	 
 axis(1, cex.axis=axes.labels.cex)
@@ -1567,12 +1567,12 @@ par(xpd=FALSE)
 axis(2,cex.axis=axes.labels.cex, las=1)
 mtext(side=2, 'refueling time (d)', line=3,cex=axes.labels.cex)
 
-abline(lm(Stayover~Fuelling_slope_females, data=Stayovers), lwd=2)
+abline(lm(Stayover~Fueling_slope_females, data=Stayovers), lwd=2)
 # 95%CI
 
 XX<-seq(4,10.5, by=0.1)
 
-Pred<-predict(M5, newdata=data.frame(Fuelling_slope_females=XX), se.fit=TRUE)
+Pred<-predict(M5, newdata=data.frame(Fueling_slope_females=XX), se.fit=TRUE)
 UCI<-Pred$fit+1.96*Pred$se.fit
 LCI<-Pred$fit-1.96*Pred$se.fit
 lines(UCI~XX, lty=2)
@@ -1617,7 +1617,7 @@ box()
 ##-------------------------------------
 # Now panel 6
 par(mar=c(4, 5,2,2 ))
-plot(fuelling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms$lugworms_ad,
+plot(fueling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms$lugworms_ad,
      ylim=c(4,8.5),ylab='',
      xlab='' ,las=1, type='n', axes=FALSE)
 	 
@@ -1628,18 +1628,18 @@ mtext(side=2, 'refueling rate (g/d)', line=3, cex=axes.labels.cex)
 axis(1, las=1, cex.axis=axes.labels.cex)
 par(xpd=TRUE)
 
-mtext(side=1, 'lugworm density (ind/sq.m)', line=3,cex=axes.labels.cex)
+mtext(side=1, 'lugworm density (ind./sq.m)', line=3,cex=axes.labels.cex)
 par(xpd=FALSE)
 # 95%CI	 
 	 
 XX<-seq(min(Lugworms$lugworms_ad), max(Lugworms$lugworms_ad), 0.1)
 Y_fem<- t(sapply(XX, FUN=function(x)
-                 quantile(x*13.2 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_f),
+                 quantile(x*13.2 /(x+fueling_model$BUGSoutput$sims.list$K_sat_f),
 		 probs=c(0.025, 0.5,0.975))))
 lines(Y_fem[,1]~XX,  lty=2)
 lines(Y_fem[,2]~XX, lwd=2)
 lines(Y_fem[,3]~XX, lty=2)
-points(fuelling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms$lugworms_ad,
+points(fueling_model$BUGSoutput$mean$Alpha_t[,2]~Lugworms$lugworms_ad,
    pch=21, cex=2, bg='black', col='white')
 
 box()
@@ -1666,14 +1666,14 @@ AIC(M1_gls, M1_gls_AR1)
 ##########
 # refueling rate
 
-M2<-lm(Fuelling_slope_females~Yr, data=Stayovers)
+M2<-lm(Fueling_slope_females~Yr, data=Stayovers)
 Stayovers$resid_fsf<-NA
-Stayovers$resid_fsf[!is.na(Stayovers$Fuelling_slope_females)]<-residuals(M2)
+Stayovers$resid_fsf[!is.na(Stayovers$Fueling_slope_females)]<-residuals(M2)
 
 acf(Stayovers$resid_fsf,  na.action = na.pass)
 
-M2_gls<-gls(Fuelling_slope_females~Yr, data=Stayovers, na.action = na.omit)
-M2_gls_AR1<-gls(Fuelling_slope_females~Yr, data=Stayovers, na.action = na.omit, correlation=corAR1(form= ~Yr))
+M2_gls<-gls(Fueling_slope_females~Yr, data=Stayovers, na.action = na.omit)
+M2_gls_AR1<-gls(Fueling_slope_females~Yr, data=Stayovers, na.action = na.omit, correlation=corAR1(form= ~Yr))
 
 AIC(M2_gls, M2_gls_AR1)
 
@@ -1694,17 +1694,17 @@ M3_gls_AR1<-gls(lugworms_ad~Yr, data=Stayovers, na.action = na.omit, correlation
 AIC(M3_gls, M3_gls_AR1)
  
 ########################################
-# fuelling by lugworms
+# fueling by lugworms
  
-M4<-lm(Fuelling_slope_females~lugworms_ad, data=Stayovers)
+M4<-lm(Fueling_slope_females~lugworms_ad, data=Stayovers)
 
 Stayovers$resid_M4<-NA
-Stayovers$resid_M4[!is.na(Stayovers$lugworms_ad) & !is.na(Stayovers$Fuelling_slope_females)]<-residuals(M4)
+Stayovers$resid_M4[!is.na(Stayovers$lugworms_ad) & !is.na(Stayovers$Fueling_slope_females)]<-residuals(M4)
 
 acf(Stayovers$resid_M4,  na.action = na.pass)
 
-M4_gls<-gls(Fuelling_slope_females~lugworms_ad, data=Stayovers, na.action = na.omit)
-M4_gls_AR1<-gls(Fuelling_slope_females~lugworms_ad, data=Stayovers, 
+M4_gls<-gls(Fueling_slope_females~lugworms_ad, data=Stayovers, na.action = na.omit)
+M4_gls_AR1<-gls(Fueling_slope_females~lugworms_ad, data=Stayovers, 
                 na.action = na.omit, correlation = corAR1(form = ~ Yr))
 
 AIC(M4_gls, M4_gls_AR1)
@@ -1757,8 +1757,8 @@ points(Stopover_before_now[2]~I(2016), pch=22, col=grey(0.45), bg=Late_color, ce
 #---------------------------------------
 # panel 2 
 
-Prediction.matrix_cur_males<-subset(Prediction.matrix,  fuelling_slope_males>=3.5 &
-                             Stopover<=35 & fuelling_slope_males<=8.5 & Stopover>17)
+Prediction.matrix_cur_males<-subset(Prediction.matrix,  fueling_slope_males>=3.5 &
+                             Stopover<=35 & fueling_slope_males<=8.5 & Stopover>17)
 
 Male_Image<-as.image(x=Prediction.matrix_cur_males[,c(7,6)],
             Z=Prediction.matrix_cur_males$Prediction_males, nx=200, ny=200)
@@ -1782,7 +1782,7 @@ contour(Male_Image, add=T, levels=plogis(Design_males_s%*%as.matrix(summary(Mode
 
 contour(Male_Image,add=T, levels=c(0.8, 0.85, 0.9, 0.95), col=grey(0.5), labcex=1)
 	  
-points(Stayover~Fuelling_slope_males, data=Stayovers, pch=21, col='white', bg='black', cex=2)
+points(Stayover~Fueling_slope_males, data=Stayovers, pch=21, col='white', bg='black', cex=2)
 box()
 
 ScaleX<-seq(Slope_males_before_now[1], 6.46, length.out=11)
@@ -1796,7 +1796,7 @@ points(Stopover_before_now[2]~Slope_males_before_now[2], pch=22, col=grey(0.45),
 # Now panel 3
 
 par(mar=c(4, 5,2,2 ))
-plot(Stayovers$Fuelling_slope_males~Stayovers$Yr, type='p',  ylab='',
+plot(Stayovers$Fueling_slope_males~Stayovers$Yr, type='p',  ylab='',
      las=1, xlim=c(1992, 2018), xlab='', axes=F, yaxs='i',
 	 cex=2, pch=21, bg='black', col='white', las=1, ylim=c(3.5,8.5))
 	 
@@ -1809,7 +1809,7 @@ par(xpd=FALSE)
 
 axis(2, las=1, cex.axis=axes.labels.cex)
 mtext(side=2, 'refueling rate (g/d)', line=3,cex=axes.labels.cex)
-abline(lm(Fuelling_slope_males~Yr, data=Stayovers), lwd=2)
+abline(lm(Fueling_slope_males~Yr, data=Stayovers), lwd=2)
 
 # 95%CI
 XX<-seq(1992,2018, by=0.1)
@@ -1831,14 +1831,14 @@ points(Stopover_before_now[1]~Slope_males_before_now[1], pch=21, bg=Early_color,
 points(Slope_males_before_now[1]~I(2016), pch=22, bg='white',col=Late_color, cex=4, lwd=3)
 points(I(6.46)~I(2016), pch=22, bg='black', col=Late_color, cex=4, lwd=3)
 points(Slope_males_before_now[2]~I(2016), pch=22, col=grey(0.45), bg=Late_color, cex=4, lwd=3)
-points(Stayovers$Fuelling_slope_males~Stayovers$Yr, cex=2, pch=21, bg='black', col='white')
+points(Stayovers$Fueling_slope_males~Stayovers$Yr, cex=2, pch=21, bg='black', col='white')
 
 ##-------------------------------------
 # Now panel 4
 
 par(mar=c(4, 5,2,2 ))
 par(xaxs='i')
-plot(Stayovers$Stayover~Stayovers$Fuelling_slope_males, type='p',  ylim=c(17,35), xlim=c(3.5,8.5) ,ylab='',
+plot(Stayovers$Stayover~Stayovers$Fueling_slope_males, type='p',  ylim=c(17,35), xlim=c(3.5,8.5) ,ylab='',
      las=1, xlab='', cex=2, axes=F, yaxs='i', pch=21, col='white', bg='black')
 	 
 axis(1, cex.axis=axes.labels.cex)
@@ -1851,12 +1851,12 @@ par(xpd=FALSE)
 axis(2,cex.axis=axes.labels.cex, las=1)
 mtext(side=2, 'refueling time (d)', line=3,cex=axes.labels.cex)
 
-abline(lm(Stayover~Fuelling_slope_males, data=Stayovers), lwd=2)
+abline(lm(Stayover~Fueling_slope_males, data=Stayovers), lwd=2)
 # 95%CI
 
 XX<-seq(3.5,8.5, by=0.1)
 
-Pred<-predict(M6, newdata=data.frame(Fuelling_slope_males=XX), se.fit=TRUE)
+Pred<-predict(M6, newdata=data.frame(Fueling_slope_males=XX), se.fit=TRUE)
 UCI<-Pred$fit+1.96*Pred$se.fit
 LCI<-Pred$fit-1.96*Pred$se.fit
 lines(UCI~XX, lty=2)
@@ -1901,7 +1901,7 @@ box()
 ##-------------------------------------
 # Now panel 6
 par(mar=c(4, 5,2,2 ))
-plot(fuelling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms$lugworms_ad,
+plot(fueling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms$lugworms_ad,
      ylim=c(3.5,8.5),ylab='',
      xlab='' ,las=1, type='n', axes=FALSE)
 	 
@@ -1912,18 +1912,18 @@ mtext(side=2, 'refueling rate (g/d)', line=3, cex=axes.labels.cex)
 axis(1, las=1, cex.axis=axes.labels.cex)
 par(xpd=TRUE)
 
-mtext(side=1, 'lugworm density (ind/sq.m)', line=3,cex=axes.labels.cex)
+mtext(side=1, 'lugworm density (ind./sq.m)', line=3,cex=axes.labels.cex)
 par(xpd=FALSE)
 # 95%CI	 
 	 
 XX<-seq(min(Lugworms$lugworms_ad), max(Lugworms$lugworms_ad), 0.1)
 Y_m<- t(sapply(XX, FUN=function(x)
-                 quantile(x*11 /(x+fuelling_model$BUGSoutput$sims.list$K_sat_m),
+                 quantile(x*11 /(x+fueling_model$BUGSoutput$sims.list$K_sat_m),
 		 probs=c(0.025, 0.5,0.975))))
 lines(Y_m[,1]~XX,  lty=2)
 lines(Y_m[,2]~XX, lwd=2)
 lines(Y_m[,3]~XX, lty=2)
-points(fuelling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms$lugworms_ad,
+points(fueling_model$BUGSoutput$mean$Alpha_t[,1]~Lugworms$lugworms_ad,
    pch=21, cex=2, bg='black', col='white')
 
 box()
@@ -2025,7 +2025,7 @@ if (Save_pdf) dev.off()
    # b. get arrival mass
    Arrival_weights<-read.csv('./results/Arrival_weights.csv')
    # c. get annual slopes
-   Fuelling_slopes<-read.csv('./results/Fuelling_slopes.csv')
+   Fueling_slopes<-read.csv('./results/Fueling_slopes.csv')
 if (Use_local_data) {
    # d. get departures from Wadden Sea through arrival to Taimyr
    Arrival_Taimyr<-read.csv('./data/Arrivals_Khat.csv')
@@ -2045,21 +2045,21 @@ if (Use_local_data) {
    Arrivals$Males_up<-Arrivals$Male_arrival_weight+1.96*Arrivals$Male_arrival_weight_sigma
    Arrivals$Females_low<-Arrivals$Female_arrival_weight-1.96*Arrivals$Female_arrival_weight_sigma
    Arrivals$Females_up<-Arrivals$Female_arrival_weight+1.96*Arrivals$Female_arrival_weight_sigma
-   Arrivals<-merge(Arrivals, Fuelling_slopes[,1:3])
-   Arrivals$Male_fuelling_intercept<-  Arrivals$Male_arrival_weight-
-                                        Arrivals$Fuelling_slope_males*Arrivals$arrival
-   Arrivals$Female_fuelling_intercept<-Arrivals$Female_arrival_weight-
-                                        Arrivals$Fuelling_slope_females*Arrivals$arrival
+   Arrivals<-merge(Arrivals, Fueling_slopes[,1:3])
+   Arrivals$Male_fueling_intercept<-  Arrivals$Male_arrival_weight-
+                                        Arrivals$Fueling_slope_males*Arrivals$arrival
+   Arrivals$Female_fueling_intercept<-Arrivals$Female_arrival_weight-
+                                        Arrivals$Fueling_slope_females*Arrivals$arrival
       
    Departure_Wadden<-Arrival_Taimyr[,c(1,3)]
    Departure_Wadden$Departure<-Departure_Wadden$yday-5.5
    Departure_Wadden<-Departure_Wadden[,-2]
   
    Arrivals<-merge(Arrivals,Departure_Wadden, all.x=TRUE )
-   Arrivals$Male_Departure_Weight<-Arrivals$Male_fuelling_intercept+
-                                       Arrivals$Fuelling_slope_males*Arrivals$Departure
-   Arrivals$Female_Departure_Weight<-Arrivals$Female_fuelling_intercept+
-                                       Arrivals$Fuelling_slope_females*Arrivals$Departure
+   Arrivals$Male_Departure_Weight<-Arrivals$Male_fueling_intercept+
+                                       Arrivals$Fueling_slope_males*Arrivals$Departure
+   Arrivals$Female_Departure_Weight<-Arrivals$Female_fueling_intercept+
+                                       Arrivals$Fueling_slope_females*Arrivals$Departure
 
    Capture_data_males<-subset(Capture_data, Sex==1 & Yr>1995)
    Capture_data_females<-subset(Capture_data, Sex==2 & Yr>1995)
@@ -2080,8 +2080,8 @@ if (Use_local_data) {
                  xend=Right_95, yend=Male_arrival_weight), col='#009E73', lwd=Lwd) +
    geom_segment(data=Arrivals, aes(x = arrival, y = Males_low,
                  xend=arrival, yend=Males_up), col='#E69F00', lwd=Lwd) +
-   geom_abline(data=Arrivals, aes(intercept=Male_fuelling_intercept,
-                 slope=Fuelling_slope_males), col='#D55E00', lwd=Lwd) +
+   geom_abline(data=Arrivals, aes(intercept=Male_fueling_intercept,
+                 slope=Fueling_slope_males), col='#D55E00', lwd=Lwd) +
    geom_vline(data=subset(Arrivals), aes(xintercept = Departure), col="#56B4E9", lwd=Lwd) +
    geom_hline(col='#0072B2', data=Arrivals, aes(yintercept = Male_Departure_Weight), lwd=Lwd)+
    labs(title='Males')
@@ -2101,8 +2101,8 @@ if (Use_local_data) {
          xend=Right_95, yend=Female_arrival_weight), col='#009E73', lwd=Lwd) +
    geom_segment(data=Arrivals, aes(x = arrival, y = Females_low,
          xend=arrival, yend=Females_up), col='#E69F00', lwd=Lwd) +
-   geom_abline(data=Arrivals, aes(intercept=Female_fuelling_intercept,
-                                  slope=Fuelling_slope_females), col='#D55E00', lwd=Lwd) +
+   geom_abline(data=Arrivals, aes(intercept=Female_fueling_intercept,
+                                  slope=Fueling_slope_females), col='#D55E00', lwd=Lwd) +
    geom_vline(data=subset(Arrivals), aes(xintercept = Departure), col="#56B4E9", lwd=Lwd) +
    geom_hline(col='#0072B2', data=Arrivals, aes(yintercept = Female_Departure_Weight), lwd=Lwd)+
    labs(title='Females')
