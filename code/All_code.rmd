@@ -1,4 +1,4 @@
-﻿# Supplementary code to 'Refueling conditions at staging sites can mitigate Arctic warming effects in a migratory bird' by Rakhimberidev et al., submitted
+# Supplementary code to 'Fueling conditions at staging sites can mitigate Arctic warming effects in a migratory bird' by Rakhimberidev et al., submitted
 
 _code by Eldar Rakhimberdiev_
 
