@@ -153,7 +153,8 @@ Snow_remote<-as.data.frame(Res)
 names(Snow_remote)<-c('Yr', 'jdate50', 'jdate50_south')   
 write.csv(Snow_remote, file='./results/Snow_remote.csv', row.names=FALSE)
 
-plot(jdate50~Yr, data=Snow_remote, pch=19, col=Colors[2], ylim=range(c(Snow_remote[,2], Snow_remote[,3])), las=1, xlab='Year', cex=2)
+plot(jdate50~Yr, data=Snow_remote, pch=19, col=Colors[2], 
+     ylim=range(c(Snow_remote[,2], Snow_remote[,3])), las=1, xlab='Year', cex=2)
 summary(lm(jdate50~Yr, data=subset(Snow_remote, Yr>1995 & Yr<2017)))
 
 ## checking for correlation between local and global snow
@@ -624,7 +625,7 @@ sigma2_W0_males<-var(residuals(weight_model_males))
 Arrival_weights<-data.frame(Yr=as.numeric(levels(aggr_data_females$fYr)),
                             Male_arrival_weight=mu_W0_males,
 			    Female_arrival_weight=mu_W0_females, Male_arrival_weight_sigma=sqrt(sigma2_W0_males),
-				Female_arrival_weight_sigma=sqrt(sigma2_W0_females))
+	            Female_arrival_weight_sigma=sqrt(sigma2_W0_females))
 write.csv(Arrival_weights, file='./results/Arrival_weights.csv', row.names=FALSE)
 ```
 
@@ -736,7 +737,8 @@ inits=function() {
    sigma2_alpha=runif(1, 0, 5),
    sigma2_alpha_fem=runif(1, 0, 5))
 }
-jags.params=c("Alpha_t", "sigma2_alpha", "sigma2_alpha_fem", "Int_lug", "Int_lug_fem", "Slope_lug", "Slope_lug_fem")
+jags.params=c("Alpha_t", "sigma2_alpha", "sigma2_alpha_fem",
+              "Int_lug", "Int_lug_fem", "Slope_lug", "Slope_lug_fem")
 ```
 
 ### 5.6 Run the model
@@ -811,7 +813,8 @@ All_staging_data$log_fuelling_slope_females_st<-
            scale(log(All_staging_data$Fuelling_slope_females), center=TRUE, scale=FALSE)
 All_staging_data$log_fuelling_slope_males_st<-
            scale(log(All_staging_data$Fuelling_slope_males), center=TRUE, scale=FALSE)
-All_staging_data$log_Stopover<-scale(log((All_staging_data$departure-All_staging_data$arrival)), center=TRUE, scale=FALSE)
+All_staging_data$log_Stopover<-scale(log((All_staging_data$departure-
+                                      All_staging_data$arrival)), center=TRUE, scale=FALSE)
  
 Departure_Weight_gain_Females<- cbind( group='f', subset(All_staging_data,
     select=c(Yr, log_fuelling_slope_females_st, log_Stopover)))
@@ -1398,8 +1401,8 @@ Prediction.matrix$Prediction_males<-
      plogis(Design_males%*%as.matrix(summary(Model)$beta[,1, drop=FALSE]))
 Prediction.matrix$fuelling_slope_females<-
      exp(Prediction.matrix$log_fuelling_slope+attr(Scale_females,"scaled:center"))
-#Prediction.matrix$Stopover<-exp(Prediction.matrix$log_Stopover)			
-Prediction.matrix$Stopover<-exp(Prediction.matrix$log_Stopover +attr(Scale_stopover,"scaled:center"))			
+#Prediction.matrix$Stopover<-exp(Prediction.matrix$log_Stopover)
+Prediction.matrix$Stopover<-exp(Prediction.matrix$log_Stopover +attr(Scale_stopover,"scaled:center"))
 Prediction.matrix$fuelling_slope_males<-
      exp(Prediction.matrix$log_fuelling_slope+attr(Scale_males,"scaled:center"))
 
@@ -1601,8 +1604,12 @@ XX<-seq(min(Stayover_2_sexes$lugworms_ad, na.rm=TRUE)-5, max(Stayover_2_sexes$lu
 Alpha_pred_f<-predict(M8a, newdata=data.frame(lugworms_ad=XX, Sex='f'), se.fit=TRUE)
 Alpha_pred_m<-predict(M8a, newdata=data.frame(lugworms_ad=XX, Sex='m'), se.fit=TRUE)
 
-Alhpa_pred_f_df<-data.frame(estimate=Alpha_pred_f$fit, lci=Alpha_pred_f$fit-1.96*Alpha_pred_f$se.fit, uci=Alpha_pred_f$fit+1.96*Alpha_pred_f$se.fit)
-Alhpa_pred_m_df<-data.frame(estimate=Alpha_pred_m$fit, lci=Alpha_pred_m$fit-1.96*Alpha_pred_f$se.fit, uci=Alpha_pred_m$fit+1.96*Alpha_pred_m$se.fit)
+Alhpa_pred_f_df<-data.frame(estimate=Alpha_pred_f$fit, 
+                            lci=Alpha_pred_f$fit-1.96*Alpha_pred_f$se.fit,
+                            uci=Alpha_pred_f$fit+1.96*Alpha_pred_f$se.fit)
+Alhpa_pred_m_df<-data.frame(estimate=Alpha_pred_m$fit,
+                            lci=Alpha_pred_m$fit-1.96*Alpha_pred_f$se.fit,
+                            uci=Alpha_pred_m$fit+1.96*Alpha_pred_m$se.fit)
 
 lines(Alhpa_pred_f_df$uci~XX,  lty=2, col=Fem_col)
 lines(Alhpa_pred_f_df$estimate~XX, lwd=2, col=Fem_col)
@@ -1674,9 +1681,13 @@ XX<-seq(min(Stayover_2_sexes$lugworms_ad, na.rm=TRUE)-5, max(Stayover_2_sexes$lu
 Alpha_pred_f<-predict(M8a, newdata=data.frame(lugworms_ad=XX, Sex='f'), se.fit=TRUE)
 Alpha_pred_m<-predict(M8a, newdata=data.frame(lugworms_ad=XX, Sex='m'), se.fit=TRUE)
 
-Alhpa_pred_f_df<-data.frame(estimate=Alpha_pred_f$fit, lci=Alpha_pred_f$fit-1.96*Alpha_pred_f$se.fit, uci=Alpha_pred_f$fit+1.96*Alpha_pred_f$se.fit)
-Alhpa_pred_m_df<-data.frame(estimate=Alpha_pred_m$fit, lci=Alpha_pred_m$fit-1.96*Alpha_pred_f$se.fit, uci=Alpha_pred_m$fit+1.96*Alpha_pred_m$se.fit)
-   
+Alhpa_pred_f_df<-data.frame(estimate=Alpha_pred_f$fit,
+                            lci=Alpha_pred_f$fit-1.96*Alpha_pred_f$se.fit,
+                            uci=Alpha_pred_f$fit+1.96*Alpha_pred_f$se.fit)
+Alhpa_pred_m_df<-data.frame(estimate=Alpha_pred_m$fit,
+                            lci=Alpha_pred_m$fit-1.96*Alpha_pred_f$se.fit,
+                            uci=Alpha_pred_m$fit+1.96*Alpha_pred_m$se.fit)
+
 lines(Alhpa_pred_m_df$uci~XX,  lty=2, col=Mal_col)
 lines(Alhpa_pred_m_df$estimate~XX, lwd=2, col=Mal_col)
 lines(Alhpa_pred_m_df$lci~XX, lty=2, col=Mal_col)
@@ -1691,7 +1702,9 @@ box()
 # Panel 8 - lugworms hist
 
 par(mar=c(4, 5,0,2 ))
-hist(Stayovers$lugworms, breaks=seq(7.5, 22.5, by=2.5), main='', col=grey(0.9), las=1, ylab='', xlab='', xlim=c(7, 35), axes=FALSE )
+hist(Stayovers$lugworms, breaks=seq(7.5, 22.5, by=2.5),
+     main='', col=grey(0.9), las=1, ylab='', xlab='',
+     xlim=c(7, 35), axes=FALSE )
 
 axis(1,  cex.axis=axes.labels.cex)
 axis(2,  cex.axis=axes.labels.cex, labels=c(0,2,4), at=c(0,2,4), las=1)
@@ -1984,10 +1997,10 @@ breaks=seq(105, 150, by=5)
 cur_year<-subset(sites_years_dates, Year_real==Year2plot)
 Totals<-aggregate(cur_year$Y, by=list(cur_year$Date), sum)
 names(Totals)<-c( 'jdate', 'total')
-#par(xpd=TRUE)
-hist(rep(Totals$jdate, Totals$total), xlim=xlims, axes=FALSE, xlab='', ylab='', main='', freq=TRUE, breaks=seq(100, 170, by=5))
+hist(rep(Totals$jdate, Totals$total), xlim=xlims, axes=FALSE,
+     xlab='', ylab='', main='', freq=TRUE, breaks=seq(100, 170, by=5))
 axis(1, labels=Xlabseq, at=Label_jdates)
-#axis(2, las=1, tcl=0.5, mgp=c(0, -3, 0),labels=seq(500, 2500, by=500), at=seq(500, 2500, by=500))
+
 axis(2, las=1, tcl=0.5, mgp=c(0, -3, 0), )
 mtext('total count, n', side=2, line=0.5, cex=Cex)
 
@@ -2038,8 +2051,10 @@ Arrival_weights<-read.csv('https://git.io/vXEbX')
 
 Arrivals_weights_cur<-subset(Arrival_weights, Yr==Year2plot)
 abline(h=Arrivals_weights_cur$Female_arrival_weight, col=Fem_col, lwd=2)
-abline(h=Arrivals_weights_cur$Female_arrival_weight-Arrivals_weights_cur$Female_arrival_weight_sigma, col=Fem_col, lwd=2, lty=2)
-abline(h=Arrivals_weights_cur$Female_arrival_weight+Arrivals_weights_cur$Female_arrival_weight_sigma, col=Fem_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Female_arrival_weight-
+     Arrivals_weights_cur$Female_arrival_weight_sigma, col=Fem_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Female_arrival_weight+
+     Arrivals_weights_cur$Female_arrival_weight_sigma, col=Fem_col, lwd=2, lty=2)
 
 #--------------------------------------------------------------------
 # Panel C capture data
@@ -2055,7 +2070,8 @@ par(mar=mar.new)
 
 aggr_data_females_Wad<-subset(Capture_data,  Sex==2 & Site != "Castricum" & Yr==Year2plot)
 par(xpd=TRUE)
-plot(Mass ~ yday, data=aggr_data_females_Wad, pch=19, xlim=xlims, ylim=ylim_weights_f, axes=FALSE, xlab='', col=Fem_col)
+plot(Mass ~ yday, data=aggr_data_females_Wad, pch=19,
+     xlim=xlims, ylim=ylim_weights_f, axes=FALSE, xlab='', col=Fem_col)
 axis(2, las=1, tcl=0.5, mgp=c(0, -3, 0))
 axis(1, labels=Xlabseq, at=Label_jdates)
 box(bty='l')
@@ -2072,15 +2088,19 @@ abline(v=Arrivals_WZ_cur$arrival+Arrivals_WZ_cur$sigma, col='#f47733', lwd=2, lt
 
 Arrivals_weights_cur<-subset(Arrival_weights, Yr==Year2plot)
 abline(h=Arrivals_weights_cur$Female_arrival_weight, col=Fem_col, lwd=2)
-abline(h=Arrivals_weights_cur$Female_arrival_weight-Arrivals_weights_cur$Female_arrival_weight_sigma, col=Fem_col, lwd=2, lty=2)
-abline(h=Arrivals_weights_cur$Female_arrival_weight+Arrivals_weights_cur$Female_arrival_weight_sigma, col=Fem_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Female_arrival_weight-
+       Arrivals_weights_cur$`, col=Fem_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Female_arrival_weight+
+       Arrivals_weights_cur$Female_arrival_weight_sigma, col=Fem_col, lwd=2, lty=2)
 
 # 3. regression line..
 Fueling_slopes_cur<-subset(Fueling_slopes, Yr==Year2plot)
 
-Fuleling_intercept_females<-Arrivals_weights_cur$Female_arrival_weight-Fueling_slopes_cur$Fuelling_slope_females*Arrivals_WZ_cur$arrival
+Fuleling_intercept_females<-Arrivals_weights_cur$Female_arrival_weight-
+       Fueling_slopes_cur$Fuelling_slope_females*Arrivals_WZ_cur$arrival
 
-abline(a=Fuleling_intercept_females, b=Fueling_slopes_cur$Fuelling_slope_females, col=Fem_col, lwd=2)
+abline(a=Fuleling_intercept_females, 
+       b=Fueling_slopes_cur$Fuelling_slope_females, col=Fem_col, lwd=2)
 
 #---------------------------------------------------------------
 # Panel D Males
@@ -2110,14 +2130,15 @@ hs<-hist(aggr_data_males_Cas$Mass, breaks=seq(150, 550, by=25), plot=FALSE)
 mtext('mass, g', side=4, line=0,, cex=Cex)
 mtext('captures, n', side=1, line=2, cex=Cex)
 
-   #   axis (4, las=1)
-   rect(ybottom=c(hs$breaks[-length(hs$breaks)]), ytop=hs$breaks[-1], xleft=hs$counts, xright=0, border=Mal_col)
-   #box(bty='l')
+   rect(ybottom=c(hs$breaks[-length(hs$breaks)]),
+        ytop=hs$breaks[-1], xleft=hs$counts, xright=0, border=Mal_col)
 
 Arrivals_weights_cur<-subset(Arrival_weights, Yr==Year2plot)
 abline(h=Arrivals_weights_cur$Male_arrival_weight, col=Mal_col, lwd=2)
-abline(h=Arrivals_weights_cur$Male_arrival_weight+Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
-abline(h=Arrivals_weights_cur$Male_arrival_weight+Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Male_arrival_weight+
+         Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Male_arrival_weight+
+         Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
 #------------------------------------------
 # Panel E male capture data
 mar.new[4]<-1.5
@@ -2128,7 +2149,8 @@ par(mar=mar.new)
 
 aggr_data_males_Wad<-subset(Capture_data,  Sex==1 & Site != "Castricum" & Yr==Year2plot)
 
-plot(Mass ~ yday, data=aggr_data_males_Wad, pch=19, xlim=xlims, ylim=ylim_weights_f, axes=FALSE, xlab='', col=Mal_col)
+plot(Mass ~ yday, data=aggr_data_males_Wad, pch=19,
+     xlim=xlims, ylim=ylim_weights_f, axes=FALSE, xlab='', col=Mal_col)
 axis(2, las=1, tcl=0.5, mgp=c(0, -3, 0))
 axis(1, labels=Xlabseq, at=Label_jdates)
 mtext('date', side=1, line=2,cex=Cex)
@@ -2143,13 +2165,16 @@ abline(v=Arrivals_WZ_cur$arrival+Arrivals_WZ_cur$sigma, col='#f47733', lwd=2, lt
 
 # 2. horizontal from Castricum
 abline(h=Arrivals_weights_cur$Male_arrival_weight, col=Mal_col, lwd=2)
-abline(h=Arrivals_weights_cur$Male_arrival_weight-Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
-abline(h=Arrivals_weights_cur$Male_arrival_weight+Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Male_arrival_weight-
+         Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
+abline(h=Arrivals_weights_cur$Male_arrival_weight+
+         Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
 
 # 3. regression line..
 Fuleling_intercept_males<-Arrivals_weights_cur$Male_arrival_weight-Fueling_slopes_cur$Fuelling_slope_males*Arrivals_WZ_cur$arrival
 
-abline(a=Fuleling_intercept_males, b=Fueling_slopes_cur$Fuelling_slope_males, col=Mal_col, lwd=2)
+abline(a=Fuleling_intercept_males, b=Fueling_slopes_cur$Fuelling_slope_males,
+       col=Mal_col, lwd=2)
 
 par(mar=mar.old)
 
@@ -2178,5 +2203,5 @@ P.S. The html file from this markdown can be recereated with folloing code
 download.file('https://git.io/vXaM6', 'tmp.rmd', cacheOK = FALSE)
 rmarkdown::render('tmp.rmd', output_format = 'html_document',
         output_options=list(toc=TRUE, toc_float=list(collapsed=FALSE)), 
-		encoding='utf-8')
+        encoding='utf-8')
 ```
