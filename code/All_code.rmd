@@ -36,7 +36,7 @@ if (Use_local_data) {
    download.file('https://git.io/vXAZ1', destfile='./results/Snow_remote.csv')
    download.file('https://git.io/vXgZG', destfile='./results/migration_model.RDS', mode='wb')
    download.file('https://git.io/vXED0', destfile='./results/Arrivals_migration_model.csv')
-   download.file('https://git.io/vFM79', destfile='./results/fuelling_model.RDS',mode='wb')
+   download.file('https://git.io/fNkrp', destfile='./results/fuelling_model.RDS',mode='wb')
    download.file('https://git.io/v7D8z', destfile='./results/phenology_SEM.RDS',mode='wb')
    download.file('https://git.io/vXEbX', destfile='./results/Arrival_weights.csv')
    download.file('https://git.io/vFM72', destfile='./results/Fuelling_slopes.csv')
