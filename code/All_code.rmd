@@ -1424,8 +1424,7 @@ Design_males_s[,5]<-1
 Design_males_s[,6]<-log(Stopover_before_now)-attr(Scale_stopover,"scaled:center")
 ```
 
-### 10.3 plot
-
+### 10.3 Plot
 ```{r fig.width=9, fig.height=12}
 
 Colors<-colorRampPalette(c("#b2182b",
@@ -1930,11 +1929,11 @@ par(mar=mar.old)
 if (Save_pdf) dev.off()
 ```
 
-## Figure 12 Supplementary Figures 1 and 2
+## 12. Supplementary Figures 1 and 2
 
 I will just make a separate small figure for each year, that can be combinded if needed.
 
-### 12.1 load data
+### 12.1 Load data
 
 ```{r}
 if (Use_local_data) {
@@ -1953,7 +1952,7 @@ Arrival_weights<-read.csv('./results/Arrival_weights.csv')
 Fueling_slopes<-read.csv('./results/Fuelling_slopes.csv')
 ```
 
-### 12.2 plot
+### 12.2 Plot
 
 ```{r fig.width=4, fig.height=4.5}
 
@@ -2171,7 +2170,8 @@ abline(h=Arrivals_weights_cur$Male_arrival_weight+
          Arrivals_weights_cur$Male_arrival_weight_sigma, col=Mal_col, lwd=2, lty=2)
 
 # 3. regression line..
-Fuleling_intercept_males<-Arrivals_weights_cur$Male_arrival_weight-Fueling_slopes_cur$Fuelling_slope_males*Arrivals_WZ_cur$arrival
+Fuleling_intercept_males<-Arrivals_weights_cur$Male_arrival_weight-
+         Fueling_slopes_cur$Fuelling_slope_males*Arrivals_WZ_cur$arrival
 
 abline(a=Fuleling_intercept_males, b=Fueling_slopes_cur$Fuelling_slope_males,
        col=Mal_col, lwd=2)
