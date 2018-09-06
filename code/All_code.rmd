@@ -396,27 +396,27 @@ Nests[nest]~dnorm(Breeding[Years2nests[nest]], Nests_tau)
 b1.1 ~ dnorm(0,0.00001);
 
 Arr_WZ_tau = pow(Arr_WZ_sigma, -2)
-Arr_WZ_sigma ~ dnorm(0,1)T(0,)
+Arr_WZ_sigma ~ dunif(0,10)
 
 b2.1 ~ dnorm(0,0.00001)
 Snowmelt_tau = pow(Snowmelt_sigma, -2)
-Snowmelt_sigma  ~ dnorm(0,1)T(0,)
+Snowmelt_sigma  ~ dunif(0,10)
 
 b3.1 ~ dnorm(0,0.00001); b3.2 ~ dnorm(0,0.00001);b3.3 ~ dnorm(0,0.00001)
 Arr_T_tau = pow(Arr_T_sigma, -2)
-Arr_T_sigma ~ dnorm(0,1)T(0,)
+Arr_T_sigma ~ dunif(0,10)
 
 b4.1 ~ dnorm(0,0.00001); b4.2 ~ dnorm(0,0.00001)
 Tipula_tau = pow(Tipula_sigma, -2)
-Tipula_sigma ~ dnorm(0,1)T(0,)
+Tipula_sigma ~ dunif(0,10)
 
 b5.1 ~ dnorm(0,0.00001); b5.2 ~ dnorm(0,0.00001); 
 b5.3 ~ dnorm(0,0.00001); b5.4 ~ dnorm(0,0.00001);
 Breeding_tau = pow(Breeding_sigma, -2)
-Breeding_sigma ~ dnorm(0,1)T(0,)
+Breeding_sigma ~ dunif(0,10)
 
 Nests_tau = pow(Nests_sigma, -2)
-Nests_sigma ~ dnorm(0,1)T(0,)
+Nests_sigma ~ dunif(0,10)
 }
 ",fill=TRUE)
 sink()
@@ -447,12 +447,12 @@ Inits<-function() {
                b5.2=runif(1,-1, 1),
                b5.3=runif(1,-1, 1),
                b5.4=runif(1,-1, 1),
-			   Arr_WZ_sigma=1,
-			   Snowmelt_sigma=1,
-			   Arr_T_sigma=1,
-			   Tipula_sigma=1,
-			   Breeding_sigma=1,
-			   Nests_sigma=1)
+               Arr_WZ_sigma=runif(1,0, 10),
+               Snowmelt_sigma=runif(1,0, 10),
+               Arr_T_sigma=runif(1,0, 10),
+               Tipula_sigma=runif(1,0, 10),
+               Breeding_sigma=runif(1,0, 10),
+               Nests_sigma=runif(1,0, 10))
 }
 
 
