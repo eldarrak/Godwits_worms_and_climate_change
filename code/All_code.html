@@ -1536,15 +1536,17 @@ if (Use_local_data &amp; !'data' %in% list.dirs(full.names=FALSE, recursive=FALS
 library(raster)</code></pre>
 <pre><code>## Loading required package: sp</code></pre>
 <pre class="r"><code>library(rgdal)</code></pre>
-<pre><code>## rgdal: version: 1.2-18, (SVN revision 718)
+<pre><code>## Warning: package 'rgdal' was built under R version 3.5.1</code></pre>
+<pre><code>## rgdal: version: 1.3-4, (SVN revision 766)
 ##  Geospatial Data Abstraction Library extensions to R successfully loaded
 ##  Loaded GDAL runtime: GDAL 2.2.3, released 2017/11/20
 ##  Path to GDAL shared files: C:/Users/Eldar/Documents/R/win-library/3.5/rgdal/gdal
 ##  GDAL binary built with GEOS: TRUE 
 ##  Loaded PROJ.4 runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
 ##  Path to PROJ.4 shared files: C:/Users/Eldar/Documents/R/win-library/3.5/rgdal/proj
-##  Linking to sp version: 1.2-7</code></pre>
+##  Linking to sp version: 1.3-1</code></pre>
 <pre class="r"><code>library(maptools)</code></pre>
+<pre><code>## Warning: package 'maptools' was built under R version 3.5.1</code></pre>
 <pre><code>## Checking rgeos availability: TRUE</code></pre>
 <pre class="r"><code>library(maps)
 library(RCurl)</code></pre>
@@ -1560,6 +1562,9 @@ library(RCurl)</code></pre>
 ## suffix '.spam' to the function name, e.g. 'help( chol.spam)'.</code></pre>
 <pre><code>## 
 ## Attaching package: 'spam'</code></pre>
+<pre><code>## The following object is masked from 'package:RMark':
+## 
+##     cleanup</code></pre>
 <pre><code>## The following objects are masked from 'package:base':
 ## 
 ##     backsolve, forwardsolve</code></pre>
@@ -1764,17 +1769,9 @@ print(summary(lm(I(jdate50_south- jdate50_ground)~1, data=Snow_all)))</code></pr
 <p>We used data from citizen science project www.trektellen.nl and modelled them with approach similar to one used in Lindén &amp; Mäntyniemi (<a href="#lindén-mäntyniemi">2011</a>). Model was estimated with JAGS sampler (<a href="#plummer">Plummer 2003</a>) via R2jags (<a href="#su-yahima">Su &amp; Yahima 2015</a>) interface from R. <em>To run code from this chapter you need to install JAGS software.</em></p>
 <div id="load-packages-and-data" class="section level3">
 <h3>2.1 Load packages and data</h3>
-<pre class="r"><code>library(R2jags)</code></pre>
-<pre><code>## Loading required package: rjags</code></pre>
-<pre><code>## Loading required package: coda</code></pre>
-<pre><code>## Linked to JAGS 4.3.0</code></pre>
-<pre><code>## Loaded modules: basemod,bugs</code></pre>
-<pre><code>## 
-## Attaching package: 'R2jags'</code></pre>
-<pre><code>## The following object is masked from 'package:coda':
-## 
-##     traceplot</code></pre>
-<pre class="r"><code>if (Use_local_data) {
+<pre class="r"><code>library(R2jags)
+
+if (Use_local_data) {
    sites_years_dates&lt;-read.csv('./data/godwit_trektellen_seven_major_sites.csv', as.is=TRUE)
 } else {
    sites_years_dates&lt;-read.csv('https://git.io/vXEBH', as.is=TRUE)
@@ -2147,27 +2144,27 @@ Nests[nest]~dnorm(Breeding[Years2nests[nest]], Nests_tau)
 b1.1 ~ dnorm(0,0.00001);
 
 Arr_WZ_tau = pow(Arr_WZ_sigma, -2)
-Arr_WZ_sigma ~ dnorm(0,1)T(0,)
+Arr_WZ_sigma ~ dunif(0,10)
 
 b2.1 ~ dnorm(0,0.00001)
 Snowmelt_tau = pow(Snowmelt_sigma, -2)
-Snowmelt_sigma  ~ dnorm(0,1)T(0,)
+Snowmelt_sigma  ~ dunif(0,10)
 
 b3.1 ~ dnorm(0,0.00001); b3.2 ~ dnorm(0,0.00001);b3.3 ~ dnorm(0,0.00001)
 Arr_T_tau = pow(Arr_T_sigma, -2)
-Arr_T_sigma ~ dnorm(0,1)T(0,)
+Arr_T_sigma ~ dunif(0,10)
 
 b4.1 ~ dnorm(0,0.00001); b4.2 ~ dnorm(0,0.00001)
 Tipula_tau = pow(Tipula_sigma, -2)
-Tipula_sigma ~ dnorm(0,1)T(0,)
+Tipula_sigma ~ dunif(0,10)
 
 b5.1 ~ dnorm(0,0.00001); b5.2 ~ dnorm(0,0.00001); 
 b5.3 ~ dnorm(0,0.00001); b5.4 ~ dnorm(0,0.00001);
 Breeding_tau = pow(Breeding_sigma, -2)
-Breeding_sigma ~ dnorm(0,1)T(0,)
+Breeding_sigma ~ dunif(0,10)
 
 Nests_tau = pow(Nests_sigma, -2)
-Nests_sigma ~ dnorm(0,1)T(0,)
+Nests_sigma ~ dunif(0,10)
 }
 &quot;,fill=TRUE)
 sink()
@@ -2197,12 +2194,12 @@ Inits&lt;-function() {
                b5.2=runif(1,-1, 1),
                b5.3=runif(1,-1, 1),
                b5.4=runif(1,-1, 1),
-               Arr_WZ_sigma=1,
-               Snowmelt_sigma=1,
-               Arr_T_sigma=1,
-               Tipula_sigma=1,
-               Breeding_sigma=1,
-               Nests_sigma=1)
+               Arr_WZ_sigma=runif(1,0, 10),
+               Snowmelt_sigma=runif(1,0, 10),
+               Arr_T_sigma=runif(1,0, 10),
+               Tipula_sigma=runif(1,0, 10),
+               Breeding_sigma=runif(1,0, 10),
+               Nests_sigma=runif(1,0, 10))
 }
 
 
@@ -2236,34 +2233,34 @@ phenology_SEM&lt;-readRDS('./results/phenology_SEM.RDS')</code></pre>
 ##  5 chains, each with 1e+06 iterations (first 1e+05 discarded), n.thin = 500
 ##  n.sims = 9000 iterations saved
 ##                mu.vect sd.vect    2.5%     25%     50%     75%   97.5%
-## Arr_T_sigma      2.770   0.340   2.191   2.530   2.742   2.977   3.507
-## Arr_WZ_sigma     1.984   0.269   1.534   1.796   1.960   2.145   2.589
-## Breeding_sigma   0.759   0.572   0.026   0.301   0.648   1.098   2.100
-## Nests_sigma      2.739   0.436   1.996   2.428   2.703   3.011   3.680
-## Snowmelt_sigma   5.047   0.421   4.296   4.753   5.023   5.314   5.940
-## b1.1            -0.049   0.059  -0.167  -0.088  -0.050  -0.010   0.066
-## b2.1            -0.737   0.140  -1.011  -0.832  -0.738  -0.641  -0.463
-## b3.1            -0.180   0.109  -0.396  -0.251  -0.179  -0.108   0.034
-## b3.2             0.201   0.087   0.032   0.143   0.200   0.258   0.374
-## b3.3             0.224   0.328  -0.439   0.005   0.231   0.447   0.839
-## b4.1            -0.019   0.218  -0.447  -0.164  -0.016   0.127   0.403
-## b4.2             0.365   0.158   0.051   0.258   0.367   0.472   0.671
-## b5.1             0.156   0.291  -0.409  -0.040   0.151   0.349   0.735
-## b5.2             0.322   0.200  -0.068   0.190   0.322   0.455   0.718
-## b5.3             2.040   0.489   1.110   1.716   2.023   2.350   3.073
-## b5.4            -0.337   0.252  -0.831  -0.502  -0.337  -0.171   0.159
-## deviance       563.297   7.363 550.742 558.048 562.682 567.906 579.267
+## Arr_T_sigma      3.493   0.614   2.536   3.058   3.409   3.837   4.915
+## Arr_WZ_sigma     2.167   0.347   1.617   1.923   2.123   2.360   2.962
+## Breeding_sigma   3.196   2.366   0.137   1.275   2.692   4.649   8.860
+## Nests_sigma      5.140   1.631   2.744   3.898   4.854   6.120   9.027
+## Snowmelt_sigma   5.470   0.856   4.093   4.872   5.345   5.960   7.456
+## b1.1            -0.046   0.065  -0.172  -0.089  -0.047  -0.004   0.084
+## b2.1            -0.792   0.153  -1.091  -0.892  -0.793  -0.696  -0.489
+## b3.1            -0.176   0.181  -0.532  -0.293  -0.175  -0.058   0.182
+## b3.2             0.198   0.172  -0.143   0.088   0.197   0.312   0.538
+## b3.3             0.240   0.445  -0.645  -0.054   0.241   0.534   1.112
+## b4.1            -0.152   0.354  -0.865  -0.377  -0.150   0.067   0.558
+## b4.2             0.274   0.302  -0.320   0.080   0.273   0.466   0.878
+## b5.1             0.116   0.647  -1.152  -0.277   0.104   0.502   1.445
+## b5.2             0.239   0.489  -0.757  -0.058   0.237   0.525   1.226
+## b5.3             1.604   1.239  -1.066   0.887   1.677   2.378   3.980
+## b5.4             0.036   0.536  -1.005  -0.298   0.013   0.353   1.176
+## deviance       551.615   8.385 536.846 545.506 551.141 557.128 569.089
 ##                 Rhat n.eff
-## Arr_T_sigma    1.001  9000
+## Arr_T_sigma    1.001  6700
 ## Arr_WZ_sigma   1.001  9000
-## Breeding_sigma 1.001  4900
-## Nests_sigma    1.001  5500
+## Breeding_sigma 1.001  9000
+## Nests_sigma    1.001  9000
 ## Snowmelt_sigma 1.001  9000
 ## b1.1           1.001  9000
 ## b2.1           1.001  9000
-## b3.1           1.001  8700
-## b3.2           1.001  7900
-## b3.3           1.001  9000
+## b3.1           1.001  9000
+## b3.2           1.001  9000
+## b3.3           1.001  4800
 ## b4.1           1.001  9000
 ## b4.2           1.001  9000
 ## b5.1           1.001  9000
@@ -2276,7 +2273,7 @@ phenology_SEM&lt;-readRDS('./results/phenology_SEM.RDS')</code></pre>
 ## and Rhat is the potential scale reduction factor (at convergence, Rhat=1).
 ## 
 ## DIC info (using the rule, pD = var(deviance)/2)
-## pD = 27.1 and DIC = 590.4
+## pD = 35.2 and DIC = 586.8
 ## DIC is an estimate of expected predictive error (lower deviance is better).</code></pre>
 <pre class="r"><code>Parameter.Index&lt;-which(substr(names(phenology_SEM$BUGSoutput$sims.list),1,1)=='b')
 SEM_coefs&lt;-data.frame(
@@ -2307,30 +2304,30 @@ SEM_coefs&lt;-data.frame(
      names(Vars)&lt;-c('Effect of', 'on')
 SEM_coefs&lt;-cbind(Vars, SEM_coefs)
 print(SEM_coefs, digits=2)</code></pre>
-<pre><code>##                Effect of                  on   mean    sd median   2.5%
-## b1.1                Time  Arrival Wadden Sea -0.049 0.059 -0.050 -0.167
-## b2.1                Time            Snowmelt -0.737 0.140 -0.738 -1.011
-## b3.1                Time   Arrival to Taimyr -0.180 0.109 -0.179 -0.396
-## b3.2            Snowmelt   Arrival to Taimyr  0.201 0.087  0.200  0.032
-## b3.3  Arrival Wadden Sea   Arrival to Taimyr  0.224 0.328  0.231 -0.439
-## b4.1                Time Crane fly emergence -0.019 0.218 -0.016 -0.447
-## b4.2            Snowmelt Crane fly emergence  0.365 0.158  0.367  0.051
-## b5.1                Time   Clutch Initiation  0.156 0.291  0.151 -0.409
-## b5.2            Snowmelt   Clutch Initiation  0.322 0.200  0.322 -0.068
-## b5.3   Arrival to Taimyr   Clutch Initiation  2.040 0.489  2.023  1.110
-## b5.4 Crane fly emergence   Clutch Initiation -0.337 0.252 -0.337 -0.831
+<pre><code>##                Effect of                  on   mean    sd median  2.5%
+## b1.1                Time  Arrival Wadden Sea -0.046 0.065 -0.047 -0.17
+## b2.1                Time            Snowmelt -0.792 0.153 -0.793 -1.09
+## b3.1                Time   Arrival to Taimyr -0.176 0.181 -0.175 -0.53
+## b3.2            Snowmelt   Arrival to Taimyr  0.198 0.172  0.197 -0.14
+## b3.3  Arrival Wadden Sea   Arrival to Taimyr  0.240 0.445  0.241 -0.65
+## b4.1                Time Crane fly emergence -0.152 0.354 -0.150 -0.86
+## b4.2            Snowmelt Crane fly emergence  0.274 0.302  0.273 -0.32
+## b5.1                Time   Clutch Initiation  0.116 0.647  0.104 -1.15
+## b5.2            Snowmelt   Clutch Initiation  0.239 0.489  0.237 -0.76
+## b5.3   Arrival to Taimyr   Clutch Initiation  1.604 1.239  1.677 -1.07
+## b5.4 Crane fly emergence   Clutch Initiation  0.036 0.536  0.013 -1.01
 ##       97.5% P(|b|&gt;0)
-## b1.1  0.066     0.80
-## b2.1 -0.463     1.00
-## b3.1  0.034     0.95
-## b3.2  0.374     0.99
-## b3.3  0.839     0.76
-## b4.1  0.403     0.53
-## b4.2  0.671     0.99
-## b5.1  0.735     0.70
-## b5.2  0.718     0.95
-## b5.3  3.073     1.00
-## b5.4  0.159     0.91</code></pre>
+## b1.1  0.084     0.77
+## b2.1 -0.489     1.00
+## b3.1  0.182     0.84
+## b3.2  0.538     0.88
+## b3.3  1.112     0.71
+## b4.1  0.558     0.68
+## b4.2  0.878     0.83
+## b5.1  1.445     0.57
+## b5.2  1.226     0.71
+## b5.3  3.980     0.90
+## b5.4  1.176     0.51</code></pre>
 <pre class="r"><code>write.csv(SEM_coefs, file='./results/SEM_coefs.csv')</code></pre>
 </div>
 </div>
@@ -2715,15 +2712,8 @@ write.csv(Fuelling_slopes, file='./results/Fuelling_slopes.csv', row.names=FALSE
 <p>We used Cormack–Jolly–Seber (CJS) model (<a href="#lebreton">Lebreton et al., 1992</a>) to model apparent survival independently from resighting probability. Set of nested models was estimated in program MARK (<a href="#white">White &amp; Burnham, 1999</a>) through RMark (<a href="#laake">Laake, 2013</a>) interface. To run model estimation with MARK or RMark you should first install program MARK from <a href="http://www.phidot.org/software/mark/downloads">here</a>.</p>
 <div id="load-and-combine-data" class="section level3">
 <h3>6.1 Load and combine data</h3>
-<pre class="r"><code>library('RMark')</code></pre>
-<pre><code>## This is RMark 2.2.4
-##  Documentation available at http://www.phidot.org/software/mark/rmark/RMarkDocumentation.zip</code></pre>
-<pre><code>## 
-## Attaching package: 'RMark'</code></pre>
-<pre><code>## The following object is masked from 'package:spam':
-## 
-##     cleanup</code></pre>
-<pre class="r"><code>   #get arrivals to the Wadden Sea
+<pre class="r"><code>library('RMark')
+   #get arrivals to the Wadden Sea
    Arrivals_WS&lt;-read.csv('./results/Arrivals_migration_model.csv')
    #get arrival mass
    Arrival_weights&lt;-read.csv('./results/Arrival_weights.csv')
